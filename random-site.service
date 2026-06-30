@@ -1,0 +1,11 @@
+[Unit]
+Description=random.0xbeckett.me static chaos site (port 8742)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/beckett/Projects/random/serve.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
