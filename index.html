@@ -15,6 +15,11 @@
   .spin{animation:spin var(--sp,4s) linear infinite;}
   @keyframes spin{to{transform:rotate(360deg)}}
   #hint{position:fixed;left:6px;bottom:4px;color:#555;font:10px monospace;z-index:10000;mix-blend-mode:difference;}
+  #src{position:fixed;right:6px;bottom:4px;font:10px monospace;z-index:10001;padding:2px 6px;border-radius:3px;
+       letter-spacing:.5px;background:rgba(0,0,0,.55);border:1px solid currentColor;color:#666;}
+  #src.q{color:#3ff0c0;text-shadow:0 0 6px #3ff0c0;}
+  #src.f{color:#ffab40;}
+  #src b{opacity:.6;font-weight:normal;}
 </style>
 </head>
 <body>
@@ -22,10 +27,74 @@
 <canvas id="noise"></canvas>
 <div id="flash"></div>
 <div id="hint">click / tap / move — feed it</div>
+<div id="src" class="f" title="entropy source"><b>src:</b> <span id="srclbl">…</span></div>
 <script>
 (function(){
 "use strict";
-var R=Math.random, F=Math.floor;
+var F=Math.floor;
+
+// ---------- QUANTUM ENTROPY (ANU QRNG) with buffered refill + graceful fallback ----------
+// Draws uint16 values from https://qrng.anu.edu.au/API/jsonI.php and normalizes to [0,1).
+// Never blocks: every draw returns instantly (buffer or Math.random). Refills happen async.
+var QRNG={
+  buf:[],            // buffered uint16 values (0..65535)
+  i:0,               // read cursor
+  LOW:256,           // refill when fewer than this remain
+  BATCH:1024,        // ANU max length per request
+  fetching:false,
+  cooldownUntil:0,   // ms epoch; ANU rate-limits ~1 req/min
+  usedQuantum:false, // whether last draw came from quantum buffer
+  ok:false,          // whether a fetch has ever succeeded
+  remaining:function(){return this.buf.length-this.i;},
+  refill:function(){
+    var now=Date.now();
+    if(this.fetching||now<this.cooldownUntil)return;
+    if(this.remaining()>this.LOW)return;
+    this.fetching=true;
+    var self=this;
+    var ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+    var timer=setTimeout(function(){if(ctl)ctl.abort();},6000); // hard timeout so nothing hangs
+    fetch('https://qrng.anu.edu.au/API/jsonI.php?length='+this.BATCH+'&type=uint16',
+      ctl?{signal:ctl.signal,cache:'no-store'}:{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
+      .then(function(j){
+        if(!j||!j.success||!j.data||!j.data.length)throw new Error('bad payload');
+        // drop consumed head, append fresh entropy
+        if(self.i>0){self.buf=self.buf.slice(self.i);self.i=0;}
+        self.buf=self.buf.concat(j.data);
+        self.ok=true;
+        self.cooldownUntil=Date.now()+65000; // respect ~1 req/min
+      })
+      .catch(function(){
+        // failure / timeout / rate-limit / CORS: back off, keep serving Math.random
+        self.cooldownUntil=Date.now()+65000;
+      })
+      .then(function(){clearTimeout(timer);self.fetching=false;setSrc();});
+  },
+  // returns a float in [0,1); quantum when buffer has entropy, else Math.random
+  next:function(){
+    if(this.remaining()<=this.LOW)this.refill();
+    if(this.i<this.buf.length){
+      this.usedQuantum=true;
+      return this.buf[this.i++]/65536;
+    }
+    this.usedQuantum=false;
+    return Math.random();
+  }
+};
+// R() is the single random source used everywhere below.
+function R(){return QRNG.next();}
+
+// entropy-source indicator
+var srcEl=document.getElementById('src'),srcLbl=document.getElementById('srclbl');
+function setSrc(){
+  var q=QRNG.usedQuantum && QRNG.remaining()>0;
+  srcEl.className=q?'q':'f';
+  srcLbl.textContent=q?('quantum · '+QRNG.remaining()):'fallback';
+}
+QRNG.refill();
+setInterval(function(){QRNG.refill();setSrc();},2000);
+setSrc();
 function ri(a,b){return F(R()*(b-a+1))+a;}
 function pick(a){return a[F(R()*a.length)];}
 function chance(p){return R()<p;}
