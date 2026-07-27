@@ -610,5 +610,5 @@ document.getElementById('enter').addEventListener('click',accept);
 })();
 })();
 </script>
-<script>setTimeout(function(){document.getElementById("enter").click();},50);</script></body>
+<script>window.__errs=[];window.addEventListener("error",function(e){window.__errs.push(String(e.message||e.error))});window.addEventListener("unhandledrejection",function(e){window.__errs.push("rej:"+e.reason)});setTimeout(function(){document.getElementById("enter").click();},50);setTimeout(function(){document.body.setAttribute("data-errs",JSON.stringify(window.__errs));document.body.setAttribute("data-src",document.getElementById("srclbl").textContent);document.body.setAttribute("data-srccls",document.getElementById("src").className);},3000);</script></body>
 </html>
