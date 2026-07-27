@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zxx" style="accent-color: rgb(183, 131, 231); caret-color: rgb(130, 76, 246);"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>٨̧̧ٔ؈̘</title>
+<style>
+  html,body{margin:0;padding:0;overflow:hidden;height:100%;background:#000;}
+  body{font-family:sans-serif;}
+  #stage{position:fixed;inset:0;}
+  .blob{position:absolute;will-change:transform,opacity;user-select:none;white-space:nowrap;
+        cursor:crosshair;text-shadow:0 0 1px currentColor;pointer-events:none;}
+  #noise{position:fixed;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:.09;z-index:9999;}
+  #flash{position:fixed;inset:0;pointer-events:none;z-index:9998;}
+  .spin{animation:spin var(--sp,4s) linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #hint{position:fixed;left:6px;bottom:4px;color:#555;font:10px monospace;z-index:10000;mix-blend-mode:difference;}
+  #src{position:fixed;right:6px;bottom:4px;font:10px monospace;z-index:10001;padding:2px 6px;border-radius:3px;
+       letter-spacing:.5px;background:rgba(0,0,0,.55);border:1px solid currentColor;color:#666;}
+  #src.q{color:#3ff0c0;text-shadow:0 0 6px #3ff0c0;}
+  #src.f{color:#ffab40;}
+  #src b{opacity:.6;font-weight:normal;}
+  #reshow{position:fixed;left:6px;top:6px;z-index:10001;font:10px monospace;color:#777;
+          text-decoration:none;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:3px;border:1px solid #444;}
+
+  /* ---- THE GATE: the one honest, static, calm element on the whole page ---- */
+  /* Deliberately plain. No animation, no motion, no colour cycling, no sound, no glyph soup. */
+  #gate{position:fixed;inset:0;z-index:2147483647;background:#0b0b0c;color:#f2f2f2;
+        display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;
+        font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:auto;}
+  #gate .box{max-width:640px;width:100%;line-height:1.55;}
+  #gate h1{font-size:24px;margin:0 0 18px;letter-spacing:.5px;color:#ffd23f;}
+  #gate .warnmark{font-size:15px;font-weight:700;color:#ffd23f;letter-spacing:2px;margin:0 0 10px;}
+  #gate p{font-size:16px;margin:0 0 16px;color:#e6e6e6;}
+  #gate strong{color:#fff;}
+  #gate .btns{display:flex;flex-wrap:wrap;gap:14px;margin:26px 0 6px;}
+  #gate button,#gate a.leave{font-size:16px;font-family:inherit;padding:14px 22px;border-radius:8px;
+        cursor:pointer;text-decoration:none;display:inline-block;min-width:150px;text-align:center;box-sizing:border-box;}
+  #gate button{background:#ffd23f;color:#111;border:2px solid #ffd23f;font-weight:700;}
+  #gate a.leave{background:transparent;color:#f2f2f2;border:2px solid #6a6a6a;}
+  #gate .fine{font-size:12.5px;color:#9a9a9a;margin-top:24px;line-height:1.5;}
+  #gate .fine a{color:#c9c9c9;}
+</style>
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFZUlEQVR4AcSWa2wUVRTHz7mz71LKQ2haW6APFVASgoTEV4JQEYPVD5KlpQHUiOAL0PDBEOMWYzTGDybGLyQmxlAFjNEPxgfG2GhAlBQMAV8tFSjQbbvb7qv7nJl7PHfoY1cWyrZrnOx/Zu7dM+f85txz7x0B//NxXYCOjn32wJ9HSpPnf6lJXfypnkK/zqD2dlsxma8J0N7+geuWGQuby8psR+we7S+b09EldfNnc1HZeurqchYL4poANWLasmhvYHNsMLpEGqb11gRwG6B8KzUtWPGfA5Cuz9Uz+qxMIg2maY7HQ5hn07CKWluvCT9uPPFdXicjzssQ0S00DRD/ZSaFE3y+ib3fgMWY59++eX9Wz5FPl4c72xvST6xe55lZutpV6qlwT/eAsAnM8SVEGvbuzemabMMCuPTdZ7NL3KXNDpfrPbvD3ibsjv1lc29qml1VPt09vQSFsMzGYkiDysG3OBdq7N/CbizPaTIWcZpfcLpdK5weV7mwaWU2p93OVx6Fq+NoGjwCwUpPYaHyW4vWVlVMRjkS1kmSSMS1nt92vFfgw7ph30I09TVB+Hw+0gRKQzekqng9nYERCL7wT1pEuVQEs4QQu/WAZ8oQgnNMhgH9BNSVjich7B+EcN+IeoMQ8gchGgiBkdEVhNKVTCDOFyB8eqDk2alkwqoBM0OdgrCNTNmbiiUgFghDdCCEscEIDrPUfaR/SEGo4OMQgNUC8GVjwLNjshBCeby1ceNg0tQ/lNLcyu1tKOV2kLRZkrmFQB6UpowkInErM3o6wyaQDVGBqL0kgyW7iPbZ1Z+FyALgOqfFazf5T4Tth13JSJszXbo/EdYOpUL2gzYBrwPQF1LKuMoOZwNM3QSySmMsVAURPqMHlm4vFMICGHXj9XrNysZticrGxsQdXm9Gad79G38nKV9DhK85E6lEeBhD/gDy/ehj6ioAkWtC22kMLH2xEAihnr6eODDVrmk5axdiD7/196ykGo5QbyA3CwQa+1mAKJ4vBGJCAHYKaoiqVnq7UcjniOAwEKQtiMtBVQtKykyJIfBmtCCW7aKOjglr4oYAlGeViZpVG3tQmLv41X9gCCMRjvG0DXIzmwEEIFYi4k6zmt5JXDp6V/z8jxX+k1/NOcffGMpXtkR2Y6J7dkq1q1supKL64zw7TnJhqqmqpmzuo1eGoxIAtzoczm+dHs8fc6rmdlXfvqQ7M3D8kN5/7B6iTzhbwLRQ+LH4sU1+h0d7iN/7NElCXjdoeDDKzRxfCAgO7pnGKhtRpQDhBbS9rQfnLeW+yQGoB6vv9g45PGKlBDrGmZCR/kFIxhIKQkmZ5BUXMXPhctK1BWofEnmtbrBTQdidch2bHzUNk6K8WvKVm1f9iKQk/rSzlIzFben48Axfywr7lABUmPn3tYRImk/xYtXPGxqoxUr1j4p42vA+AlFe3oM9fdDffRkC5/viA+f6huCj4/qUAVQgaczsAcADMBIMsg6SRPFQLBEZCF1ODScv6Gm9G4k+BmmcxtZWWRSAerfbRIQzUkrkIcCs+BzHTPAmd5hXzh0C8EnUYH3a5d5dv3bTWWUn1KkYQhICAYmzQNn+UODfzhL3ofo1zZ8vaNjQXruq6dTCex+NjdoUBeBEZydKkNqV8TaAs2D5V23WENdGn9WR51QUgDuf9psIsoeD6ZlkCoeDETUlLSUiw5FYf2AoT2yrqygAiK0SHc5TBPglj3U4yl9QYX/QiPiDF7j4jumGuGhFy3MqCoDyO7/PHCCTXkUgH0O8mUll3tDTxisk9QN1D3gjyiafigaA/C1R/2DTmZqG5nfr1jTvqWto8tU2bGhTe0e+wKN9/wAAAP//kbWqEQAAAAZJREFUAwD2UtdfT/rHdgAAAABJRU5ErkJggg=="></head>
+<body data-errs="[]" data-src="fallback" data-cls="f" style="cursor: none; background: radial-gradient(circle at 85% 51%, rgb(104, 86, 225), rgb(0, 0, 0) 70%);">
+<div id="stage"><div class="blob spin" style="font-family: &quot;monospace&quot;, Verdana, cursive; font-size: 76px; color: rgb(0, 104, 240); font-weight: 900; font-style: normal; letter-spacing: 12px; direction: ltr; --sp: 7.08s; transform: translate(35.5414px, 18.5739px) rotate(172.22deg);">ٹ̯̤̺ۘﺵ̦ ͇̫̲ﻡ̵َْ̢̛͍͇̗̜۰̸̝͉ ̠̠ﻵ٤͇̭ﺏ̖̮ۙ ̱̭̜ﻹ̵̞̺ۘژ͇̻</div><div class="blob spin" style="font-family: Verdana, &quot;Brush Script MT&quot;, serif; font-size: 113px; color: rgb(212, 83, 238); font-weight: normal; font-style: normal; direction: ltr; --sp: 6.69s; transform: translate(106.45px, 18.4055px) rotate(141.864deg);">ۀ̨̡̫̱̣</div><div class="blob" style="font-family: Palatino, monospace; font-size: 153px; color: rgb(221, 248, 155); font-weight: 900; font-style: normal; direction: ltr; writing-mode: sideways-rl; text-orientation: upright; transform: translate(177.379px, 18.3469px) rotate(145.833deg);">ےَقۖﺯٌْﺎْۖ۹ ﺎ </div><div class="blob spin" style="font-family: Garamond, &quot;Arial Black&quot;, &quot;Noto Naskh Arabic&quot;, monospace; font-size: 101px; color: rgb(15, 80, 184); font-weight: 900; font-style: italic; direction: ltr; --sp: 1.41s; transform: translate(357.359px, 348.72px) rotate(342.48deg); letter-spacing: 15px;">آحٍِ ذِٔمُےۘﻹۗﻵ</div><div class="blob" style="font-family: Scheherazade, &quot;serif&quot;, cursive; font-size: 96px; color: rgb(161, 135, 232); font-weight: normal; font-style: normal; letter-spacing: 18px; mix-blend-mode: screen; direction: rtl; transform: translate(319.04px, 18.5356px) rotate(146.794deg);">με ̴Δ</div><div class="blob" style="font-family: Verdana, cursive; font-size: 56px; color: rgb(50, 236, 174); font-weight: 900; font-style: normal; direction: ltr; transform: translate(389.959px, 18.4464px) rotate(1.80212deg);">ث̹̘̞̫̪̹̠̦̖</div><div class="blob spin" style="font-family: &quot;Lucida Console&quot;, Tahoma, cursive; font-size: 97px; color: rgb(38, 20, 173); font-weight: normal; font-style: italic; mix-blend-mode: color-dodge; direction: ltr; --sp: 3.93s; transform: translate(460.679px, 18.5338px) rotate(311.08deg);">ڈ̣ۙ۵</div><div class="blob" style="font-family: &quot;Times New Roman&quot;, &quot;Lucida Console&quot;, sans-serif; font-size: 19px; color: rgb(128, 227, 114); font-weight: normal; font-style: normal; text-shadow: rgb(234, 186, 253) 0px 0px 11px; direction: ltr; transform: translate(531.84px, 18.2998px) rotate(125.636deg);">ں̙</div><div class="blob" style="font-family: Tahoma, &quot;Comic Sans MS&quot;, monospace; font-size: 167px; color: rgb(194, 82, 255); font-weight: normal; font-style: normal; letter-spacing: 16px; text-shadow: rgb(207, 228, 98) 0px 0px 37px; direction: ltr; transform: translate(602.671px, 18.4675px) rotate(136.315deg);">🥩</div><div class="blob" style="font-family: Amiri, serif; font-size: 69px; color: rgb(174, 222, 239); font-weight: normal; font-style: normal; letter-spacing: 9px; text-shadow: rgb(66, 205, 82) 0px 0px 3px; direction: ltr; text-orientation: sideways; transform: translate(673.509px, 18.4901px) rotate(181.859deg);">ظۘﻵ سًْ؉ﺭاﷲٌ یُۙﻕُٰ</div><div class="blob" style="font-family: Impact, sans-serif; font-size: 46px; color: rgb(182, 17, 168); font-weight: normal; font-style: normal; letter-spacing: -3px; direction: ltr; text-orientation: upright; transform: translate(510.225px, 84.7166px) rotate(233.73deg);">ﻹ̬̱</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, &quot;system-ui&quot;, &quot;Lucida Console&quot;, fantasy; font-size: 61px; color: rgb(150, 236, 81); font-weight: 900; font-style: italic; letter-spacing: 10px; text-shadow: rgb(93, 67, 177) 0px 0px 2px; direction: rtl; writing-mode: vertical-lr; --sp: 2.72s; transform: translate(35.4545px, 55.3058px) rotate(28.5754deg);">🧿🌀</div><div class="blob" style="font-family: &quot;fantasy&quot;, serif; font-size: 72px; color: rgb(156, 210, 226); font-weight: 900; font-style: normal; text-shadow: rgb(13, 140, 24) 0px 0px 34px; direction: ltr; writing-mode: vertical-rl; transform: translate(106.38px, 55.1305px) rotate(189.839deg);">ﺙ̷̹̜̻</div><div class="blob" style="font-family: &quot;fantasy&quot;, Impact, Tahoma, monospace; font-size: 29px; color: rgb(161, 103, 23); font-weight: normal; font-style: italic; letter-spacing: 11px; direction: ltr; transform: translate(176.916px, 55.1756px) rotate(335.555deg);">🦇</div><div class="blob spin" style="font-family: &quot;monospace&quot;, &quot;serif&quot;, &quot;Brush Script MT&quot;, fantasy; font-size: 31px; color: rgb(246, 198, 157); font-weight: normal; font-style: normal; letter-spacing: 6px; direction: ltr; --sp: 6.30s; transform: translate(248.169px, 54.9286px) rotate(348.067deg);">ئُ̢͎̮̖̞ۙﺹ̻ت̱̗ۙ ̧</div><div class="blob" style="font-family: &quot;Times New Roman&quot;, Tahoma, &quot;cursive&quot;, sans-serif; font-size: 65px; color: rgb(35, 144, 80); font-weight: 900; font-style: normal; letter-spacing: -5px; direction: ltr; text-orientation: mixed; transform: translate(319.11px, 55.1124px) rotate(235.813deg);">🐛🦇🦑</div><div class="blob" style="font-family: &quot;monospace&quot;, fantasy; font-size: 122px; color: rgb(61, 19, 144); font-weight: normal; font-style: normal; direction: ltr; writing-mode: vertical-rl; transform: translate(389.726px, 55.2903px) rotate(138.004deg);">۱َ٦ وڑًَذيٓٔ</div><div class="blob" style="font-family: &quot;Courier New&quot;, Palatino, monospace; font-size: 159px; color: rgb(196, 90, 145); font-weight: 900; font-style: normal; letter-spacing: 18px; mix-blend-mode: overlay; direction: rtl; transform: translate(461.223px, 55.1682px) rotate(283.1deg);">ع</div><div class="blob spin" style="font-family: &quot;Noto Naskh Arabic&quot;, Tahoma, serif; font-size: 112px; color: rgb(18, 108, 161); font-weight: 900; font-style: normal; letter-spacing: 19px; direction: rtl; text-orientation: mixed; --sp: 3.66s; transform: translate(531.511px, 55.4758px) rotate(307.209deg);">💀🌋🍕</div><div class="blob spin" style="font-family: Garamond, Verdana, fantasy; font-size: 170px; color: rgb(208, 167, 251); font-weight: normal; font-style: italic; letter-spacing: 6px; text-shadow: rgb(78, 195, 70) 0px 0px 33px; mix-blend-mode: exclusion; direction: ltr; text-orientation: sideways; --sp: 3.94s; transform: translate(602.96px, 55.384px) rotate(115.498deg);">往暑昃昃收</div><div class="blob" style="font-family: Amiri, &quot;Trebuchet MS&quot;, &quot;Courier New&quot;, cursive; font-size: 74px; color: rgb(248, 176, 150); font-weight: normal; font-style: normal; letter-spacing: 13px; direction: ltr; transform: translate(673.539px, 55.0821px) rotate(186.503deg);">ٱ̴̵̜</div><div class="blob" style="font-family: &quot;Trebuchet MS&quot;, fantasy; font-size: 24px; color: rgb(103, 178, 249); font-weight: 900; font-style: normal; letter-spacing: 14px; mix-blend-mode: screen; direction: rtl; transform: translate(744.56px, 55.139px) rotate(260.904deg);">ᛃᛃᚱᚹᚢᛏ</div><div class="blob" style="font-family: Palatino, fantasy; font-size: 179px; color: rgb(172, 226, 178); font-weight: 900; font-style: normal; text-shadow: rgb(157, 32, 84) 0px 0px 10px; direction: rtl; transform: translate(35.4296px, 91.8811px) rotate(12.9276deg);">⛧☣️🐙🪼</div><div class="blob spin" style="font-family: Palatino, &quot;Trebuchet MS&quot;, &quot;Courier New&quot;, sans-serif; font-size: 79px; color: rgb(6, 51, 157); font-weight: normal; font-style: italic; direction: rtl; writing-mode: vertical-rl; --sp: 1.48s; transform: translate(106.16px, 91.6394px) rotate(49.1431deg);">٥̤̫̜د̬̰̺ۛ ﻷْ̨̹̗̱̹̩͇ٓژ̨̭̙̯̬ۜ</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, fantasy; font-size: 53px; color: rgb(74, 161, 12); font-weight: 900; font-style: normal; letter-spacing: 4px; direction: ltr; transform: translate(177.253px, 91.8807px) rotate(311.801deg);">ژ̘</div><div class="blob" style="font-family: Verdana, fantasy; font-size: 89px; color: rgb(215, 121, 178); font-weight: 900; font-style: italic; mix-blend-mode: exclusion; direction: rtl; transform: translate(248.201px, 91.6585px) rotate(69.4993deg);">⛧🫧</div><div class="blob" style="font-family: &quot;Lucida Console&quot;, Verdana, cursive; font-size: 82px; color: rgb(156, 228, 139); font-weight: 900; font-style: italic; text-shadow: rgb(57, 4, 154) 0px 0px 22px; direction: rtl; transform: translate(318.746px, 91.4489px) rotate(94.4627deg); text-orientation: sideways;">ט</div><div class="blob" style="font-family: &quot;cursive&quot;, &quot;Courier New&quot;, Palatino, cursive; font-size: 20px; color: rgb(143, 150, 8); font-weight: normal; font-style: italic; direction: ltr; transform: translate(390.023px, 91.9918px) rotate(320.032deg);">🦴</div><div class="blob" style="font-family: &quot;cursive&quot;, sans-serif; font-size: 56px; color: rgb(157, 37, 55); font-weight: normal; font-style: normal; letter-spacing: 22px; direction: ltr; transform: translate(460.996px, 91.9813px) rotate(6.18498deg);">ۃ٦ۂٔۛﻕۜٓوۘٹٌﻥۂٔدۖ</div><div class="blob" style="font-family: Amiri, Garamond, serif; font-size: 28px; color: rgb(182, 164, 62); font-weight: normal; font-style: normal; text-shadow: rgb(213, 160, 1) 0px 0px 34px; direction: ltr; text-orientation: mixed; transform: translate(531.594px, 91.721px) rotate(172.986deg);">ب̗͇ۙ ﺯ؈ً̢̼ ڑًُ̱ﻹ</div><div class="blob" style="font-family: &quot;fantasy&quot;, &quot;Lucida Console&quot;, sans-serif; font-size: 155px; color: rgb(138, 234, 189); font-weight: 900; font-style: normal; direction: rtl; transform: translate(602.523px, 92.0489px) rotate(65.9225deg); --sp: 6.41s; text-orientation: upright;">▒ ╗╚▐ ╠▀╚○</div><div class="blob spin" style="font-family: &quot;monospace&quot;, Palatino, fantasy; font-size: 37px; color: rgb(170, 253, 197); font-weight: 900; font-style: italic; text-shadow: rgb(123, 60, 200) 0px 0px 37px; mix-blend-mode: screen; direction: rtl; --sp: 4.05s; transform: translate(673.601px, 91.7918px) rotate(238.841deg);">ى̨͍̲͎̹̙̪</div><div class="blob" style="font-family: &quot;system-ui&quot;, fantasy; font-size: 114px; color: rgb(16, 173, 144); font-weight: 900; font-style: normal; direction: ltr; transform: translate(744.395px, 91.6725px) rotate(88.6365deg);">ᛇᛈᚢᛞᛒᛁ</div><div class="blob spin" style="font-family: Palatino, fantasy; font-size: 41px; color: rgb(0, 255, 162); font-weight: normal; font-style: normal; direction: ltr; --sp: 1.48s; transform: translate(35.3832px, 128.606px) rotate(132.105deg);">ﻝ̧̥</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, sans-serif; font-size: 165px; color: rgb(184, 205, 224); font-weight: 900; font-style: normal; letter-spacing: -1px; direction: ltr; --sp: 4.20s; transform: translate(106.126px, 128.803px) rotate(121.843deg);">ﻵ̵̧̙̣̬̩̰</div><div class="blob spin" style="font-family: &quot;serif&quot;, &quot;Times New Roman&quot;, Palatino, fantasy; font-size: 173px; color: rgb(253, 18, 96); font-weight: normal; font-style: normal; direction: ltr; text-orientation: mixed; --sp: 5.92s; transform: translate(177.254px, 128.914px) rotate(83.7056deg);">🌸🌀🩸🧿</div><div class="blob spin" style="font-family: &quot;Lucida Console&quot;, Garamond, &quot;fantasy&quot;, fantasy; font-size: 107px; color: rgb(226, 121, 125); font-weight: normal; font-style: normal; direction: ltr; --sp: 1.60s; transform: translate(248.29px, 128.727px) rotate(8.90628deg);">۱̸ً̭̠̲̯ۛ</div><div class="blob" style="font-family: Verdana, &quot;Trebuchet MS&quot;, sans-serif; font-size: 106px; color: rgb(238, 191, 224); font-weight: normal; font-style: italic; direction: ltr; text-orientation: upright; --sp: 5.67s; transform: translate(35.6228px, 18.2784px) rotate(18.5995deg); letter-spacing: 5px; writing-mode: sideways-rl;">∝∝⌊⊥≈∉ ∇≠∂∈</div><div class="blob spin" style="font-family: &quot;fantasy&quot;, serif; font-size: 49px; color: rgb(210, 189, 229); font-weight: 900; font-style: italic; direction: ltr; --sp: 3.23s; transform: translate(390.032px, 128.631px) rotate(177.641deg);">⛧🛸🪩👾</div><div class="blob" style="font-family: Palatino, &quot;Lucida Console&quot;, &quot;Lucida Console&quot;, sans-serif; font-size: 159px; color: rgb(190, 122, 199); font-weight: normal; font-style: normal; letter-spacing: -3px; direction: ltr; text-orientation: upright; --sp: 2.34s; transform: translate(269.989px, 50.8738px) rotate(114.918deg); mix-blend-mode: color-dodge; writing-mode: vertical-rl;">🌪️🕳️👁️🦠</div><div class="blob" style="font-family: &quot;Arial Black&quot;, &quot;cursive&quot;, &quot;cursive&quot;, sans-serif; font-size: 62px; color: rgb(100, 65, 164); font-weight: 900; font-style: normal; direction: ltr; text-orientation: mixed; transform: translate(531.89px, 128.702px) rotate(153.83deg);">ذِ̢̫̝ۖ ﻭ͇̙ۖ﷽̧̳̩ۛ ﺏ̮͇ۜ ̖̪ﺕ̡ٓﻕْ̰̲سََ̳̭ </div><div class="blob" style="font-family: Impact, Verdana, fantasy; font-size: 50px; color: rgb(210, 246, 203); font-weight: normal; font-style: italic; mix-blend-mode: exclusion; direction: ltr; transform: translate(602.705px, 128.699px) rotate(37.5202deg);">∮⊥̷̮ ̷̬≥̝⌉̡∞͈͍∃̛̖∵∴⌈̵̰̦ ͈∑̷̛̙</div><div class="blob" style="font-family: Georgia, &quot;Arial Black&quot;, &quot;Lucida Console&quot;, serif; font-size: 34px; color: rgb(142, 85, 16); font-weight: normal; font-style: normal; direction: ltr; text-orientation: upright; transform: translate(673.628px, 128.638px) rotate(349.801deg);">ك̧̖̳</div><div class="blob spin" style="font-family: &quot;fantasy&quot;, sans-serif; font-size: 139px; color: rgb(184, 254, 196); font-weight: normal; font-style: italic; text-shadow: rgb(59, 155, 61) 0px 0px 13px; direction: ltr; --sp: 6.56s; transform: translate(744.454px, 128.888px) rotate(110.05deg);">η̡ιΠ</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, fantasy; font-size: 95px; color: rgb(18, 135, 55); font-weight: normal; font-style: normal; direction: rtl; text-orientation: upright; transform: translate(35.4064px, 165.134px) rotate(155.686deg);">ڑِ ۵ًٔءّۚﺝٌإَّغئۛٱْٓﺕّ</div><div class="blob" style="font-family: &quot;fantasy&quot;, serif; font-size: 62px; color: rgb(237, 79, 74); font-weight: 900; font-style: normal; text-shadow: rgb(28, 85, 155) 0px 0px 35px; mix-blend-mode: exclusion; direction: ltr; transform: translate(106.284px, 165.34px) rotate(288.617deg);">؈̮</div><div class="blob spin" style="font-family: &quot;cursive&quot;, Georgia, Amiri, monospace; font-size: 34px; color: rgb(43, 253, 197); font-weight: normal; font-style: normal; direction: rtl; transform: translate(177.548px, 165.014px) rotate(356.421deg); --sp: 1.40s;">ﺡّزً٤ </div><div class="blob spin" style="font-family: Amiri, &quot;Trebuchet MS&quot;, cursive; font-size: 95px; color: rgb(205, 92, 86); font-weight: normal; font-style: italic; mix-blend-mode: color-dodge; direction: ltr; --sp: 7.23s; transform: translate(248.274px, 165.463px) rotate(18.4749deg);">یۘۘلٍْﻵ هٌٔﺯٍٔ</div><div class="blob" style="font-family: Georgia, Impact, &quot;Trebuchet MS&quot;, serif; font-size: 153px; color: rgb(168, 245, 25); font-weight: 900; font-style: normal; letter-spacing: 17px; text-shadow: rgb(183, 42, 138) 0px 0px 35px; direction: ltr; transform: translate(318.702px, 165.354px) rotate(1.84562deg);">زّۙ؈صۖۂِ کْۜ ڈ ﻅۛ ﻭۖۖﺡ</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, fantasy; font-size: 171px; color: rgb(77, 213, 209); font-weight: normal; font-style: italic; letter-spacing: 9px; text-shadow: rgb(95, 200, 95) 0px 0px 8px; direction: ltr; transform: translate(389.808px, 165.241px) rotate(1.48498deg);">🌋🎈🍕</div><div class="blob spin" style="font-family: &quot;Courier New&quot;, &quot;cursive&quot;, sans-serif; font-size: 178px; color: rgb(151, 53, 74); font-weight: 900; font-style: normal; mix-blend-mode: overlay; direction: ltr; text-orientation: mixed; --sp: 7.47s; transform: translate(461.083px, 165.11px) rotate(237.358deg);">🧊🧠🫠🦠</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, Verdana, fantasy; font-size: 180px; color: rgb(187, 226, 205); font-weight: 900; font-style: normal; direction: ltr; writing-mode: vertical-rl; text-orientation: upright; --sp: 4.63s; transform: translate(531.957px, 165.666px) rotate(301.594deg);">۱ًﺝﺕًٌ٦ وٱهٰ ۀۛٔم</div><div class="blob" style="font-family: &quot;monospace&quot;, monospace; font-size: 53px; color: rgb(4, 231, 98); font-weight: 900; font-style: normal; direction: ltr; text-orientation: mixed; transform: translate(602.716px, 165.458px) rotate(250.442deg);">🛸🪬🧬</div><div class="blob" style="font-family: &quot;Brush Script MT&quot;, &quot;serif&quot;, &quot;cursive&quot;, fantasy; font-size: 165px; color: rgb(207, 189, 245); font-weight: 900; font-style: normal; mix-blend-mode: screen; direction: ltr; transform: translate(673.747px, 165.376px) rotate(243.111deg);">ﻩ̧̩̠</div><div class="blob" style="font-family: &quot;serif&quot;, &quot;Times New Roman&quot;, &quot;Noto Naskh Arabic&quot;, cursive; font-size: 105px; color: rgb(16, 42, 147); font-weight: normal; font-style: italic; letter-spacing: 4px; direction: ltr; text-orientation: upright; transform: translate(744.821px, 165.303px) rotate(329.817deg);">∫</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, &quot;fantasy&quot;, &quot;Trebuchet MS&quot;, fantasy; font-size: 143px; color: rgb(19, 241, 115); font-weight: normal; font-style: normal; direction: ltr; transform: translate(487.645px, 288.454px) rotate(18.2875deg); text-orientation: upright; --sp: 4.78s;">ڈ̸̯̯͉̹̲̙</div><div class="blob spin" style="font-family: &quot;cursive&quot;, &quot;cursive&quot;, sans-serif; font-size: 169px; color: rgb(172, 163, 240); font-weight: 900; font-style: normal; letter-spacing: 17px; text-shadow: rgb(60, 153, 26) 0px 0px 13px; direction: ltr; --sp: 0.81s; transform: translate(106.072px, 202.142px) rotate(273.822deg);">د̤̖̞̟</div><div class="blob spin" style="font-family: Amiri, serif; font-size: 71px; color: rgb(191, 244, 190); font-weight: 900; font-style: italic; letter-spacing: 11px; text-shadow: rgb(140, 54, 118) 0px 0px 13px; mix-blend-mode: color-dodge; direction: rtl; --sp: 1.62s; transform: translate(177.369px, 202.227px) rotate(207.909deg);">ئ̨̞̲̯</div><div class="blob" style="font-family: Georgia, Scheherazade, sans-serif; font-size: 149px; color: rgb(32, 254, 246); font-weight: 900; font-style: italic; text-shadow: rgb(164, 253, 255) 0px 0px 16px; direction: rtl; text-orientation: mixed; transform: translate(247.965px, 202.501px) rotate(108.375deg);">ﻍۚ</div><div class="blob spin" style="font-family: &quot;fantasy&quot;, serif; font-size: 89px; color: rgb(242, 199, 161); font-weight: 900; font-style: italic; letter-spacing: 20px; mix-blend-mode: overlay; direction: rtl; text-orientation: mixed; --sp: 2.90s; transform: translate(319.01px, 202.017px) rotate(216.701deg);">ﺥ̴̧̟̦͎̰͈̘̮</div><div class="blob" style="font-family: Georgia, &quot;Noto Naskh Arabic&quot;, sans-serif; font-size: 29px; color: rgb(137, 148, 205); font-weight: normal; font-style: normal; letter-spacing: 17px; text-shadow: rgb(229, 195, 239) 0px 0px 11px; direction: rtl; transform: translate(390.352px, 202.049px) rotate(45.5502deg);">⊕⊕∈√⊗≤∴⌈⊗≤</div><div class="blob spin" style="font-family: &quot;Noto Naskh Arabic&quot;, &quot;Noto Naskh Arabic&quot;, sans-serif; font-size: 160px; color: rgb(62, 217, 244); font-weight: normal; font-style: italic; letter-spacing: 22px; text-shadow: rgb(239, 57, 166) 0px 0px 32px; mix-blend-mode: color-dodge; direction: ltr; --sp: 4.39s; transform: translate(460.908px, 202.124px) rotate(48.0251deg);">🍕🌪️🐙</div><div class="blob" style="font-family: Palatino, fantasy; font-size: 119px; color: rgb(246, 116, 122); font-weight: 900; font-style: italic; letter-spacing: 16px; text-shadow: rgb(197, 193, 251) 0px 0px 39px; direction: rtl; writing-mode: sideways-rl; text-orientation: mixed; transform: translate(531.92px, 201.776px) rotate(116.386deg);">🍄🪐</div><div class="blob" style="font-family: &quot;system-ui&quot;, &quot;Arial Black&quot;, serif; font-size: 170px; color: rgb(105, 41, 255); font-weight: normal; font-style: normal; text-shadow: rgb(31, 174, 193) 0px 0px 2px; direction: ltr; transform: translate(602.552px, 201.971px) rotate(69.1123deg);">ᚘᚅ̠ᚅᚃ̦ᚎ̘ᚐᚏ̳ᚈᚃ̤ᚁ</div><div class="blob" style="font-family: &quot;Noto Naskh Arabic&quot;, cursive; font-size: 118px; color: rgb(29, 62, 139); font-weight: 900; font-style: normal; letter-spacing: 22px; text-shadow: rgb(185, 106, 9) 0px 0px 27px; mix-blend-mode: exclusion; direction: ltr; transform: translate(673.868px, 202.14px) rotate(288.97deg);">🫠🐙🌸</div><div class="blob spin" style="font-family: Verdana, Scheherazade, serif; font-size: 87px; color: rgb(33, 89, 202); font-weight: normal; font-style: normal; direction: ltr; --sp: 3.37s; transform: translate(744.52px, 202.071px) rotate(20.3776deg); text-shadow: rgb(246, 101, 123) 0px 0px 38px; writing-mode: vertical-rl;">ﻭنﻵۘ ٹ ﻭٍّ؋ۚۘلٔ</div><div class="blob" style="font-family: Tahoma, &quot;Arial Black&quot;, cursive; font-size: 16px; color: rgb(173, 49, 227); font-weight: 900; font-style: italic; direction: ltr; writing-mode: vertical-rl; transform: translate(35.674px, 238.878px) rotate(93.4275deg);">🔮🪬🛸</div><div class="blob" style="font-family: &quot;monospace&quot;, &quot;Times New Roman&quot;, cursive; font-size: 88px; color: rgb(229, 112, 62); font-weight: normal; font-style: italic; direction: ltr; --sp: 7.05s; transform: translate(357.539px, 356.23px) rotate(282.074deg); text-shadow: rgb(206, 130, 149) 0px 0px 16px;">🩸</div><div class="blob" style="font-family: Amiri, &quot;fantasy&quot;, serif; font-size: 171px; color: rgb(118, 208, 62); font-weight: normal; font-style: italic; direction: rtl; text-orientation: upright; transform: translate(177.513px, 238.544px) rotate(312.871deg);">🐙🥴🎈</div><div class="blob" style="font-family: &quot;monospace&quot;, &quot;Comic Sans MS&quot;, Verdana, fantasy; font-size: 158px; color: rgb(218, 168, 43); font-weight: 900; font-style: italic; mix-blend-mode: color-dodge; direction: ltr; transform: translate(248.057px, 238.593px) rotate(195.001deg);">ᚄ ᚒᚃ ᚈᚒᚕ ᚉ</div><div class="blob" style="font-family: &quot;Arial Black&quot;, Palatino, &quot;system-ui&quot;, fantasy; font-size: 124px; color: rgb(217, 168, 255); font-weight: normal; font-style: normal; direction: ltr; text-orientation: sideways; transform: translate(319.188px, 238.928px) rotate(42.2583deg);">ﺡ͈͉</div><div class="blob" style="font-family: Scheherazade, sans-serif; font-size: 70px; color: rgb(132, 212, 89); font-weight: normal; font-style: normal; letter-spacing: 8px; text-shadow: rgb(110, 105, 195) 0px 0px 3px; mix-blend-mode: screen; direction: ltr; text-orientation: sideways; transform: translate(390.175px, 238.564px) rotate(19.9155deg);">ﻷ</div><div class="blob" style="font-family: &quot;serif&quot;, &quot;fantasy&quot;, cursive; font-size: 137px; color: rgb(83, 54, 150); font-weight: 900; font-style: italic; direction: rtl; text-orientation: mixed; transform: translate(460.899px, 238.891px) rotate(233.033deg);">صًۗ۶</div><div class="blob" style="font-family: &quot;Times New Roman&quot;, Impact, sans-serif; font-size: 126px; color: rgb(125, 49, 61); font-weight: normal; font-style: italic; direction: ltr; text-orientation: mixed; transform: translate(531.562px, 239.013px) rotate(337.735deg);">Β</div><div class="blob" style="font-family: &quot;Lucida Console&quot;, Palatino, monospace; font-size: 10px; color: rgb(87, 214, 99); font-weight: normal; font-style: italic; direction: rtl; transform: translate(602.786px, 238.849px) rotate(206.874deg);">张字̞ ̴̧̙</div><div class="blob" style="font-family: &quot;serif&quot;, serif; font-size: 37px; color: rgb(159, 214, 244); font-weight: 900; font-style: italic; mix-blend-mode: overlay; direction: ltr; transform: translate(673.638px, 238.881px) rotate(155.127deg);">чыоироыхфф</div><div class="blob spin" style="font-family: &quot;Trebuchet MS&quot;, Impact, monospace; font-size: 35px; color: rgb(89, 252, 74); font-weight: 900; font-style: italic; letter-spacing: 22px; direction: ltr; --sp: 1.83s; transform: translate(744.5px, 238.966px) rotate(82.8846deg);">╩▲̹</div><div class="blob spin" style="font-family: &quot;cursive&quot;, monospace; font-size: 39px; color: rgb(177, 139, 238); font-weight: 900; font-style: normal; text-shadow: rgb(238, 68, 128) 0px 0px 21px; mix-blend-mode: color-dodge; direction: ltr; text-orientation: mixed; --sp: 1.31s; transform: translate(35.6255px, 275.705px) rotate(138.519deg);">ھ̧̘̭͉</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, cursive; font-size: 57px; color: rgb(170, 190, 39); font-weight: normal; font-style: normal; mix-blend-mode: exclusion; direction: rtl; transform: translate(106.349px, 275.643px) rotate(37.8579deg); --sp: 1.77s; letter-spacing: 13px; writing-mode: vertical-rl; text-orientation: sideways;">👁️🪿🔮</div><div class="blob spin" style="font-family: Impact, sans-serif; font-size: 53px; color: rgb(92, 255, 239); font-weight: normal; font-style: normal; letter-spacing: 2px; direction: ltr; transform: translate(177.682px, 275.843px) rotate(142.351deg); --sp: 6.22s;">γΦ̮ΛΘ̙̗Φπ̫̝</div><div class="blob spin" style="font-family: &quot;Comic Sans MS&quot;, serif; font-size: 69px; color: rgb(209, 249, 185); font-weight: normal; font-style: italic; text-shadow: rgb(188, 240, 224) 0px 0px 2px; direction: ltr; --sp: 5.38s; transform: translate(248.183px, 275.622px) rotate(156.307deg);">ﺵۖۛۃچھۛ وًْظ٩ خّٓ ﻻۖ</div><div class="blob spin" style="font-family: &quot;Lucida Console&quot;, sans-serif; font-size: 104px; color: rgb(0, 199, 63); font-weight: 900; font-style: normal; text-shadow: rgb(88, 253, 207) 0px 0px 35px; mix-blend-mode: overlay; direction: ltr; text-orientation: upright; --sp: 4.37s; transform: translate(318.916px, 275.526px) rotate(319.823deg);">☢️🕳️🌈🦞</div><div class="blob" style="font-family: Scheherazade, cursive; font-size: 73px; color: rgb(202, 80, 28); font-weight: 900; font-style: italic; direction: ltr; transform: translate(422.814px, 385.584px) rotate(97.5519deg);">∀͎͉̰∠̥≈̗ ̫⌉͍⌉̩͎ ≤̟̩̰ ∠̺</div><div class="blob spin" style="font-family: &quot;monospace&quot;, Amiri, monospace; font-size: 118px; color: rgb(230, 159, 234); font-weight: normal; font-style: normal; letter-spacing: 16px; direction: ltr; text-orientation: upright; --sp: 6.60s; transform: translate(460.682px, 275.636px) rotate(226.638deg);">え うケあおかオカかシ</div><div class="blob spin" style="font-family: &quot;Trebuchet MS&quot;, &quot;system-ui&quot;, monospace; font-size: 39px; color: rgb(236, 109, 24); font-weight: normal; font-style: normal; letter-spacing: -3px; direction: ltr; text-orientation: mixed; --sp: 2.87s; transform: translate(531.644px, 275.872px) rotate(62.1625deg);">╩̺╚͉═║̸╗▐̧▀̻▲ ╠ ̶̧╣</div><div class="blob spin" style="font-family: Verdana, Scheherazade, serif; font-size: 62px; color: rgb(239, 11, 79); font-weight: 900; font-style: normal; text-shadow: rgb(50, 106, 189) 0px 0px 37px; direction: rtl; --sp: 2.48s; transform: translate(602.941px, 275.859px) rotate(347.022deg);">ﻹٍ ͉̼ﻻ̫̬ۙﻱ̷̷ٰ͍̖̘̯ۜ</div><div class="blob spin" style="font-family: Georgia, Palatino, cursive; font-size: 160px; color: rgb(221, 6, 254); font-weight: normal; font-style: normal; letter-spacing: 0px; text-shadow: rgb(41, 224, 182) 0px 0px 34px; direction: ltr; text-orientation: mixed; --sp: 7.03s; transform: translate(673.894px, 275.577px) rotate(226.49deg);">ي̧̭</div><div class="blob spin" style="font-family: Verdana, &quot;cursive&quot;, sans-serif; font-size: 25px; color: rgb(81, 230, 116); font-weight: 900; font-style: normal; mix-blend-mode: color-dodge; direction: ltr; --sp: 6.74s; transform: translate(330.044px, 220.579px) rotate(182.768deg);">юкрВю</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, serif; font-size: 135px; color: rgb(160, 44, 121); font-weight: 900; font-style: italic; direction: ltr; transform: translate(35.8365px, 312.27px) rotate(47.9891deg); letter-spacing: -4px; --sp: 4.40s;">ھ̲͍̹̜̯̠̘</div><div class="blob" style="font-family: &quot;fantasy&quot;, &quot;Brush Script MT&quot;, Tahoma, sans-serif; font-size: 92px; color: rgb(220, 46, 141); font-weight: 900; font-style: normal; direction: ltr; transform: translate(106.029px, 312.48px) rotate(180.746deg); letter-spacing: -3px; text-shadow: rgb(110, 231, 70) 0px 0px 19px;">ﺫ</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, cursive; font-size: 16px; color: rgb(164, 30, 97); font-weight: normal; font-style: italic; text-shadow: rgb(200, 197, 242) 0px 0px 5px; direction: rtl; text-orientation: sideways; transform: translate(177.603px, 312.041px) rotate(201.799deg);">ﷲٍژُۛ ﻙٌٔگیْۚخٍ</div><div class="blob spin" style="font-family: Garamond, Impact, fantasy; font-size: 43px; color: rgb(157, 136, 221); font-weight: 900; font-style: italic; letter-spacing: 9px; text-shadow: rgb(139, 243, 249) 0px 0px 26px; direction: rtl; text-orientation: mixed; --sp: 4.83s; transform: translate(248.203px, 312.355px) rotate(324.669deg);">شًٰ̦̯̲̰̝̲̥̫ ̤̭̫أ̴ِ̤̜̗̘̟̲̼̫̩ٔ٣̴̸ً̝̹̳̖̟گ̪̪̻ۛظ̶̵̸̨̯̠ۛۘإ̵̗̘̹̣̘̲̙̻̭ۙ</div><div class="blob" style="font-family: Amiri, Verdana, &quot;Times New Roman&quot;, fantasy; font-size: 178px; color: rgb(189, 228, 185); font-weight: 900; font-style: normal; letter-spacing: 12px; direction: ltr; writing-mode: vertical-rl; transform: translate(319.162px, 312.611px) rotate(249.348deg);">ھ̛</div><div class="blob" style="font-family: &quot;fantasy&quot;, Amiri, Tahoma, monospace; font-size: 79px; color: rgb(3, 215, 252); font-weight: 900; font-style: normal; letter-spacing: 4px; direction: rtl; writing-mode: vertical-rl; transform: translate(389.992px, 312.376px) rotate(262.041deg);">ﺥ̶͉̮</div><div class="blob" style="font-family: &quot;fantasy&quot;, monospace; font-size: 42px; color: rgb(189, 160, 46); font-weight: normal; font-style: normal; direction: ltr; transform: translate(460.922px, 312.351px) rotate(12.2845deg);">🦷🦠🔮⚡</div><div class="blob" style="font-family: &quot;monospace&quot;, &quot;cursive&quot;, &quot;Brush Script MT&quot;, serif; font-size: 159px; color: rgb(21, 85, 162); font-weight: normal; font-style: normal; direction: ltr; --sp: 0.84s; transform: translate(531.838px, 312.315px) rotate(259.684deg); text-shadow: rgb(98, 244, 229) 0px 0px 3px; letter-spacing: 2px; mix-blend-mode: difference;">غۘغْۘیﻱّٰ ﺭ ﻉ۴ًٓ</div><div class="blob spin" style="font-family: Verdana, &quot;Trebuchet MS&quot;, cursive; font-size: 172px; color: rgb(250, 153, 246); font-weight: 900; font-style: italic; direction: ltr; text-orientation: sideways; --sp: 1.85s; transform: translate(602.275px, 312.554px) rotate(123.805deg);">🍕</div><div class="blob" style="font-family: &quot;Arial Black&quot;, &quot;fantasy&quot;, &quot;Times New Roman&quot;, sans-serif; font-size: 123px; color: rgb(234, 220, 154); font-weight: 900; font-style: normal; direction: ltr; transform: translate(673.572px, 312.393px) rotate(237.402deg);">ظٍ̭̺ٓ ى ̙ٱٌ̧ٔ</div><div class="blob spin" style="font-family: &quot;Comic Sans MS&quot;, Tahoma, serif; font-size: 84px; color: rgb(193, 62, 151); font-weight: normal; font-style: normal; letter-spacing: 16px; text-shadow: rgb(167, 79, 53) 0px 0px 12px; direction: ltr; text-orientation: mixed; --sp: 3.83s; transform: translate(744.447px, 312.241px) rotate(91.883deg);">ﻻﺽﺡﻙُۚ١ّْﺫّٰںٰۚ</div><div class="blob" style="font-family: &quot;Arial Black&quot;, fantasy; font-size: 115px; color: rgb(233, 166, 242); font-weight: normal; font-style: italic; letter-spacing: 1px; text-shadow: rgb(225, 222, 148) 0px 0px 20px; direction: rtl; transform: translate(35.3669px, 349.213px) rotate(93.5846deg);">ﻉٍِﴼٰۃۚﻡٌ ضٍ ۀُۚﺩٌۛﻱِۙ</div><div class="blob spin" style="font-family: Georgia, cursive; font-size: 179px; color: rgb(57, 91, 213); font-weight: 900; font-style: normal; letter-spacing: 21px; direction: ltr; text-orientation: sideways; --sp: 1.47s; transform: translate(106.491px, 349.324px) rotate(92.3733deg);">ﺕ̬̠̞̣</div><div class="blob" style="font-family: &quot;Courier New&quot;, &quot;Brush Script MT&quot;, &quot;Trebuchet MS&quot;, sans-serif; font-size: 131px; color: rgb(246, 251, 112); font-weight: normal; font-style: italic; letter-spacing: 17px; direction: ltr; writing-mode: vertical-rl; transform: translate(177.102px, 349.169px) rotate(273.437deg);">🦷🌪️</div><div class="blob spin" style="font-family: &quot;Lucida Console&quot;, cursive; font-size: 114px; color: rgb(132, 41, 31); font-weight: normal; font-style: normal; direction: ltr; --sp: 2.07s; transform: translate(248.476px, 349.447px) rotate(85.6364deg);">ﻷً̲̥ﻻْ̨̣ھ̶̶̨̖̟̳ٓظ̷ٍ̟͇ۚﺥ̧̳̣ٔۘط̸̨̻̞̯͉ۗڈ̸̧̢̯̪̰̯ۙۙ ؈̞̱̜̤ھٌ̝̩</div><div class="blob" style="font-family: &quot;Noto Naskh Arabic&quot;, &quot;Lucida Console&quot;, cursive; font-size: 159px; color: rgb(110, 218, 52); font-weight: normal; font-style: normal; direction: ltr; transform: translate(422.492px, 118.704px) rotate(44.1649deg);">ء̡̯̤̭͉</div><div class="blob" style="font-family: Garamond, &quot;cursive&quot;, monospace; font-size: 177px; color: rgb(162, 249, 11); font-weight: 900; font-style: normal; text-shadow: rgb(175, 152, 251) 0px 0px 2px; direction: rtl; transform: translate(390.24px, 349.496px) rotate(43.932deg);">ف̪ۖ ̛̩ھً̗̘̫̦̻̬̠ٓز̮ۚ</div><div class="blob" style="font-family: &quot;system-ui&quot;, fantasy; font-size: 67px; color: rgb(11, 72, 142); font-weight: normal; font-style: normal; mix-blend-mode: overlay; direction: rtl; transform: translate(461.092px, 349.004px) rotate(192.938deg);">🐛</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, Amiri, &quot;Times New Roman&quot;, sans-serif; font-size: 24px; color: rgb(140, 212, 140); font-weight: 900; font-style: normal; direction: rtl; transform: translate(531.822px, 349.122px) rotate(337.546deg); text-shadow: rgb(219, 20, 50) 0px 0px 10px; text-orientation: upright;">🫀</div><div class="blob" style="font-family: Amiri, fantasy; font-size: 150px; color: rgb(118, 234, 216); font-weight: 900; font-style: italic; direction: ltr; transform: translate(602.38px, 349.216px) rotate(352.802deg);">ﴼْۜﻕّ عًىہۗ</div><div class="blob" style="font-family: Garamond, &quot;Courier New&quot;, monospace; font-size: 44px; color: rgb(235, 243, 200); font-weight: 900; font-style: normal; letter-spacing: 8px; text-shadow: rgb(61, 106, 143) 0px 0px 13px; mix-blend-mode: exclusion; direction: ltr; writing-mode: vertical-rl; transform: translate(673.419px, 349.421px) rotate(311.171deg);">аф</div><div class="blob" style="font-family: Scheherazade, Amiri, monospace; font-size: 167px; color: rgb(73, 190, 14); font-weight: 900; font-style: normal; direction: ltr; transform: translate(744.576px, 349.287px) rotate(22.7555deg);">🦷🌈🪩🪿</div><div class="blob" style="font-family: &quot;Arial Black&quot;, monospace; font-size: 61px; color: rgb(223, 240, 96); font-weight: normal; font-style: normal; mix-blend-mode: difference; direction: ltr; text-orientation: mixed; transform: translate(35.4823px, 385.691px) rotate(213.975deg);">ﺏ͍</div><div class="blob spin" style="font-family: &quot;system-ui&quot;, Amiri, fantasy; font-size: 174px; color: rgb(79, 143, 186); font-weight: 900; font-style: italic; direction: ltr; --sp: 4.69s; transform: translate(177.278px, 423.063px) rotate(187.567deg);">🧠👁️🛸🐙</div><div class="blob" style="font-family: &quot;monospace&quot;, Scheherazade, fantasy; font-size: 48px; color: rgb(243, 22, 243); font-weight: normal; font-style: normal; direction: ltr; text-orientation: upright; transform: translate(177.249px, 386.02px) rotate(202.868deg);">⌉≡∃ √</div><div class="blob" style="font-family: Amiri, Palatino, Impact, monospace; font-size: 168px; color: rgb(183, 150, 16); font-weight: 900; font-style: normal; direction: ltr; --sp: 1.62s; transform: translate(487.546px, 288.208px) rotate(155.804deg);">🩸</div><div class="blob" style="font-family: Palatino, &quot;system-ui&quot;, cursive; font-size: 14px; color: rgb(213, 129, 98); font-weight: normal; font-style: normal; letter-spacing: 9px; direction: rtl; text-orientation: mixed; transform: translate(319.114px, 385.944px) rotate(278.202deg);">٢ّۜھ </div><div class="blob" style="font-family: Impact, Verdana, &quot;Arial Black&quot;, monospace; font-size: 64px; color: rgb(196, 144, 234); font-weight: 900; font-style: normal; letter-spacing: 18px; text-shadow: rgb(241, 20, 4) 0px 0px 33px; direction: ltr; writing-mode: sideways-rl; transform: translate(390.33px, 385.622px) rotate(24.6556deg);">ﻑ̵ْ̤̞̫̖̻̭ٓشِْ͈̝ﻩِ̨̛̪̼ا̶͎̱٦̸̩̫̙ۖﺝ̴ً̲̝̭̞͉̻ۜ؉̶ُ̡̣̱̻̪̹̱ۛﻱ̤ ̭̘̰</div><div class="blob spin" style="font-family: &quot;system-ui&quot;, Amiri, monospace; font-size: 128px; color: rgb(69, 144, 20); font-weight: normal; font-style: italic; letter-spacing: 20px; mix-blend-mode: color-dodge; direction: ltr; --sp: 5.98s; transform: translate(460.85px, 385.646px) rotate(4.01464deg);">آ̴̛̹</div><div class="blob spin" style="font-family: Impact, &quot;Lucida Console&quot;, Garamond, serif; font-size: 145px; color: rgb(80, 166, 58); font-weight: 900; font-style: normal; direction: ltr; --sp: 5.29s; transform: translate(162.363px, 18.2843px) rotate(141.502deg);">👁️</div><div class="blob spin" style="font-family: Impact, &quot;Brush Script MT&quot;, fantasy; font-size: 28px; color: rgb(54, 22, 141); font-weight: 900; font-style: normal; mix-blend-mode: color-dodge; direction: ltr; writing-mode: sideways-rl; text-orientation: sideways; --sp: 2.78s; transform: translate(603.07px, 386.161px) rotate(27.2244deg);">ةَٰ٦ٍوةۜٔ۴ۚ ٨</div><div class="blob" style="font-family: &quot;Lucida Console&quot;, &quot;Courier New&quot;, fantasy; font-size: 44px; color: rgb(226, 87, 60); font-weight: 900; font-style: normal; letter-spacing: 18px; direction: rtl; transform: translate(673.701px, 385.994px) rotate(92.666deg);">ےٌ کﺱم</div><div class="blob" style="font-family: &quot;cursive&quot;, Palatino, &quot;Comic Sans MS&quot;, fantasy; font-size: 112px; color: rgb(182, 251, 185); font-weight: 900; font-style: normal; direction: ltr; text-orientation: mixed; transform: translate(357.477px, 288.348px) rotate(149.06deg);">ڈۘ بﻵۜﻉٌﺕطُﻩ </div><div class="blob spin" style="font-family: &quot;Noto Naskh Arabic&quot;, Impact, &quot;system-ui&quot;, monospace; font-size: 155px; color: rgb(112, 41, 81); font-weight: normal; font-style: normal; direction: ltr; transform: translate(749.739px, 152.74px) rotate(150.706deg); --sp: 2.55s;">💀💀🪲🌪️</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, Verdana, &quot;Noto Naskh Arabic&quot;, sans-serif; font-size: 34px; color: rgb(165, 72, 44); font-weight: normal; font-style: normal; mix-blend-mode: exclusion; direction: rtl; text-orientation: sideways; transform: translate(106.347px, 422.632px) rotate(358.905deg);">ﺹ̠̺̮̻̪̜</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, &quot;cursive&quot;, &quot;Comic Sans MS&quot;, fantasy; font-size: 132px; color: rgb(166, 38, 134); font-weight: normal; font-style: normal; text-shadow: rgb(83, 102, 243) 0px 0px 38px; mix-blend-mode: color-dodge; direction: ltr; writing-mode: vertical-rl; text-orientation: sideways; transform: translate(177.104px, 422.822px) rotate(157.917deg);">۹ً̦ۙﻑ̼ۙ ﻑ̴̠̥ۙۙ</div><div class="blob" style="font-family: Scheherazade, fantasy; font-size: 160px; color: rgb(127, 225, 205); font-weight: normal; font-style: normal; text-shadow: rgb(21, 213, 169) 0px 0px 4px; direction: ltr; transform: translate(247.915px, 422.52px) rotate(59.2031deg);">さサイい</div><div class="blob" style="font-family: &quot;system-ui&quot;, &quot;Brush Script MT&quot;, sans-serif; font-size: 47px; color: rgb(174, 229, 191); font-weight: 900; font-style: normal; letter-spacing: 2px; text-shadow: rgb(136, 168, 206) 0px 0px 22px; mix-blend-mode: exclusion; direction: ltr; writing-mode: sideways-rl; text-orientation: sideways; transform: translate(319.071px, 422.584px) rotate(107.444deg);">س</div><div class="blob spin" style="font-family: &quot;serif&quot;, sans-serif; font-size: 105px; color: rgb(206, 70, 110); font-weight: 900; font-style: normal; text-shadow: rgb(212, 37, 110) 0px 0px 39px; direction: ltr; --sp: 1.21s; transform: translate(389.573px, 422.921px) rotate(220.977deg);">ﻩ̬̟</div><div class="blob" style="font-family: Georgia, fantasy; font-size: 162px; color: rgb(233, 1, 129); font-weight: normal; font-style: italic; direction: rtl; text-orientation: upright; transform: translate(460.616px, 422.917px) rotate(279.591deg);">⌉∉ ⌋ ≡∇∀</div><div class="blob" style="font-family: &quot;monospace&quot;, &quot;cursive&quot;, &quot;cursive&quot;, monospace; font-size: 65px; color: rgb(239, 219, 67); font-weight: 900; font-style: normal; direction: rtl; writing-mode: vertical-lr; transform: translate(531.919px, 422.873px) rotate(252.866deg);">ע̧͍̲̪פ̻̝̦̝ל͉̖͉̗ו̱ןב̧̳̪ ̷̣̣</div><div class="blob spin" style="font-family: &quot;Brush Script MT&quot;, monospace; font-size: 61px; color: rgb(63, 30, 250); font-weight: 900; font-style: italic; direction: rtl; text-orientation: upright; --sp: 2.39s; transform: translate(602.287px, 422.166px) rotate(46.6127deg);">ᚖ̺ᚈ̛̟ ̝ᚙᚔ̧̳ᚖ̙̳</div><div class="blob spin" style="font-family: &quot;Trebuchet MS&quot;, &quot;Courier New&quot;, Tahoma, fantasy; font-size: 123px; color: rgb(166, 173, 31); font-weight: 900; font-style: normal; mix-blend-mode: difference; direction: rtl; writing-mode: vertical-lr; text-orientation: mixed; --sp: 5.12s; transform: translate(673.622px, 422.622px) rotate(15.9434deg);">گٍۗأۙٓ عٓ غْٓﻵۛ</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, &quot;Comic Sans MS&quot;, &quot;Times New Roman&quot;, serif; font-size: 76px; color: rgb(120, 215, 227); font-weight: normal; font-style: normal; text-shadow: rgb(128, 255, 255) 0px 0px 6px; direction: rtl; --sp: 6.72s; transform: translate(744.631px, 422.52px) rotate(17.2491deg);">🩸🕳️💀</div><div class="blob" style="font-family: Palatino, monospace; font-size: 156px; color: rgb(95, 82, 188); font-weight: 900; font-style: italic; text-shadow: rgb(252, 100, 120) 0px 0px 38px; mix-blend-mode: screen; direction: ltr; transform: translate(32.853px, 422.605px) rotate(199.244deg);">⛧🌸🦴</div><div class="blob" style="font-family: &quot;serif&quot;, &quot;Comic Sans MS&quot;, Tahoma, serif; font-size: 56px; color: rgb(126, 225, 20); font-weight: normal; font-style: normal; direction: ltr; text-orientation: mixed; transform: translate(97.6698px, 422.845px) rotate(4.31601deg);">ﻅ ﻍٓخٓﺯ</div><div class="blob spin" style="font-family: Palatino, Tahoma, cursive; font-size: 165px; color: rgb(173, 235, 201); font-weight: normal; font-style: normal; text-shadow: rgb(237, 212, 213) 0px 0px 30px; mix-blend-mode: overlay; direction: rtl; --sp: 6.24s; transform: translate(682.181px, 288.4px) rotate(146.872deg);">ﺡ̧̛̯̟̭̼̼̫</div><div class="blob spin" style="font-family: Palatino, &quot;fantasy&quot;, monospace; font-size: 21px; color: rgb(156, 150, 222); font-weight: 900; font-style: normal; letter-spacing: -5px; mix-blend-mode: hue; direction: ltr; --sp: 6.66s; transform: translate(227.464px, 422.533px) rotate(102.29deg);">🗿🦠🫀☢️</div><div class="blob spin" style="font-family: Scheherazade, &quot;Courier New&quot;, monospace; font-size: 16px; color: rgb(158, 128, 5); font-weight: 900; font-style: normal; direction: ltr; text-orientation: upright; --sp: 6.07s; transform: translate(292.498px, 422.59px) rotate(306.114deg);">盈冬</div><div class="blob" style="font-family: Palatino, fantasy; font-size: 167px; color: rgb(219, 229, 31); font-weight: 900; font-style: normal; mix-blend-mode: difference; direction: ltr; text-orientation: mixed; transform: translate(357.494px, 422.648px) rotate(180.948deg);">ي̹̭̪̮̫</div><div class="blob spin" style="font-family: Amiri, &quot;Lucida Console&quot;, &quot;system-ui&quot;, serif; font-size: 133px; color: rgb(99, 46, 133); font-weight: normal; font-style: italic; direction: ltr; transform: translate(422.457px, 422.584px) rotate(217.159deg); text-orientation: upright; --sp: 5.79s;">إ̸̸̡̗̮</div><div class="blob" style="font-family: &quot;Arial Black&quot;, &quot;Lucida Console&quot;, sans-serif; font-size: 40px; color: rgb(206, 237, 33); font-weight: normal; font-style: italic; direction: ltr; transform: translate(487.731px, 422.544px) rotate(250.326deg); mix-blend-mode: screen;">خ̨̝̬̣̭</div><div class="blob" style="font-family: Impact, cursive; font-size: 180px; color: rgb(212, 185, 254); font-weight: normal; font-style: normal; direction: ltr; text-orientation: sideways; transform: translate(552.559px, 422.641px) rotate(353.843deg);">ڈعﻙﻡۘةٌٰ إا ءٰﺝۖ </div><div class="blob" style="font-family: &quot;serif&quot;, &quot;Arial Black&quot;, sans-serif; font-size: 30px; color: rgb(155, 69, 54); font-weight: 900; font-style: normal; letter-spacing: 6px; text-shadow: rgb(230, 253, 195) 0px 0px 11px; mix-blend-mode: exclusion; direction: ltr; transform: translate(617.494px, 422.72px) rotate(95.0937deg);">╦▐◆</div><div class="blob" style="font-family: &quot;Arial Black&quot;, monospace; font-size: 135px; color: rgb(96, 46, 138); font-weight: 900; font-style: normal; letter-spacing: 7px; mix-blend-mode: hue; direction: ltr; text-orientation: mixed; transform: translate(682.383px, 422.32px) rotate(296.945deg);">ﺫ̨̡̛̞̻̻̳̤̭̲̥ۗۖ </div><div class="blob" style="font-family: Palatino, Impact, fantasy; font-size: 173px; color: rgb(172, 12, 145); font-weight: normal; font-style: normal; direction: ltr; transform: translate(747.866px, 422.364px) rotate(108.11deg);">ﺩ ﷲذﺏ٣ کبہی</div><div class="blob spin" style="font-family: Impact, &quot;Courier New&quot;, &quot;Arial Black&quot;, sans-serif; font-size: 52px; color: rgb(203, 143, 128); font-weight: 900; font-style: italic; mix-blend-mode: screen; direction: rtl; --sp: 5.37s; transform: translate(32.5848px, 424.028px) rotate(333.993deg);">🔮</div><div class="blob" style="font-family: &quot;Noto Naskh Arabic&quot;, &quot;monospace&quot;, &quot;Times New Roman&quot;, fantasy; font-size: 78px; color: rgb(195, 142, 250); font-weight: normal; font-style: italic; text-shadow: rgb(237, 202, 208) 0px 0px 2px; direction: ltr; writing-mode: vertical-lr; text-orientation: upright; transform: translate(97.4814px, 423.999px) rotate(293.024deg);">⠇⠛ </div><div class="blob" style="font-family: Verdana, Verdana, sans-serif; font-size: 18px; color: rgb(177, 114, 228); font-weight: normal; font-style: italic; direction: ltr; writing-mode: vertical-rl; text-orientation: upright; transform: translate(162.56px, 424.203px) rotate(98.7255deg);">ﺱ</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, &quot;fantasy&quot;, serif; font-size: 81px; color: rgb(137, 36, 129); font-weight: 900; font-style: normal; mix-blend-mode: overlay; direction: rtl; writing-mode: vertical-rl; text-orientation: mixed; --sp: 6.00s; transform: translate(227.568px, 423.816px) rotate(137.11deg);">⚡🦴🌶️</div><div class="blob" style="font-family: &quot;cursive&quot;, &quot;Courier New&quot;, cursive; font-size: 81px; color: rgb(76, 250, 160); font-weight: 900; font-style: normal; direction: ltr; writing-mode: vertical-lr; transform: translate(292.675px, 423.804px) rotate(164.824deg);">АВош БГ п ц</div><div class="blob" style="font-family: &quot;serif&quot;, &quot;Noto Naskh Arabic&quot;, monospace; font-size: 59px; color: rgb(146, 173, 227); font-weight: normal; font-style: italic; letter-spacing: -3px; direction: ltr; transform: translate(357.448px, 423.783px) rotate(331.698deg);">ᚌᚖᚄᚘᚙᚖᚑ ᚖᚁ</div><div class="blob" style="font-family: Georgia, Scheherazade, &quot;system-ui&quot;, fantasy; font-size: 45px; color: rgb(120, 177, 201); font-weight: 900; font-style: italic; direction: ltr; text-orientation: sideways; transform: translate(422.322px, 423.869px) rotate(312.2deg);">💀🥴🌸</div><div class="blob spin" style="font-family: &quot;monospace&quot;, Impact, serif; font-size: 116px; color: rgb(184, 222, 239); font-weight: normal; font-style: normal; letter-spacing: 16px; mix-blend-mode: overlay; direction: ltr; text-orientation: mixed; --sp: 6.76s; transform: translate(487.728px, 423.993px) rotate(5.51792deg);">⛧🔮🌸🧬</div><div class="blob spin" style="font-family: &quot;cursive&quot;, sans-serif; font-size: 94px; color: rgb(12, 198, 145); font-weight: normal; font-style: normal; text-shadow: rgb(73, 38, 171) 0px 0px 12px; mix-blend-mode: exclusion; direction: ltr; --sp: 3.97s; transform: translate(552.082px, 424.196px) rotate(68.729deg);">؋̷̶̣̞̺͉͈̞̭̪</div><div class="blob" style="font-family: &quot;fantasy&quot;, Verdana, monospace; font-size: 143px; color: rgb(158, 185, 24); font-weight: normal; font-style: normal; letter-spacing: 13px; direction: rtl; transform: translate(617.614px, 424.009px) rotate(290.533deg);">🦑🐙🧊</div><div class="blob" style="font-family: &quot;system-ui&quot;, Tahoma, Georgia, monospace; font-size: 141px; color: rgb(203, 132, 58); font-weight: normal; font-style: normal; letter-spacing: 0px; text-shadow: rgb(96, 190, 165) 0px 0px 32px; direction: rtl; transform: translate(682.485px, 424.196px) rotate(32.2722deg);">🦠🌪️🍕🫠</div><div class="blob spin" style="font-family: &quot;Trebuchet MS&quot;, serif; font-size: 137px; color: rgb(31, 158, 149); font-weight: 900; font-style: normal; direction: ltr; --sp: 2.54s; transform: translate(747.594px, 424.116px) rotate(25.0777deg);">○▌◄○ ╬▌</div><div class="blob" style="font-family: Georgia, &quot;Brush Script MT&quot;, Verdana, serif; font-size: 40px; color: rgb(209, 208, 148); font-weight: 900; font-style: normal; mix-blend-mode: difference; direction: ltr; text-orientation: mixed; transform: translate(30.0535px, 424.022px) rotate(235.074deg);">🦑☣️</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, Georgia, cursive; font-size: 31px; color: rgb(46, 60, 250); font-weight: normal; font-style: normal; mix-blend-mode: screen; direction: ltr; text-orientation: upright; --sp: 4.47s; transform: translate(89.821px, 423.649px) rotate(251.812deg);">🪿🧊</div><div class="blob spin" style="font-family: Verdana, Scheherazade, monospace; font-size: 101px; color: rgb(198, 63, 139); font-weight: normal; font-style: italic; mix-blend-mode: difference; direction: ltr; --sp: 4.72s; transform: translate(150px, 423.64px) rotate(262.93deg);">ᛇᚠ</div><div class="blob" style="font-family: &quot;Arial Black&quot;, monospace; font-size: 96px; color: rgb(84, 195, 40); font-weight: 900; font-style: normal; letter-spacing: 9px; text-shadow: rgb(138, 123, 213) 0px 0px 10px; mix-blend-mode: screen; direction: rtl; text-orientation: mixed; transform: translate(209.912px, 423.708px) rotate(2.15884deg);">ۃ̸</div><div class="blob" style="font-family: &quot;Trebuchet MS&quot;, sans-serif; font-size: 129px; color: rgb(211, 141, 236); font-weight: normal; font-style: normal; text-shadow: rgb(51, 235, 161) 0px 0px 40px; direction: rtl; transform: translate(269.905px, 424.302px) rotate(170.744deg);">张来汉字寒藏 宿 昃</div><div class="blob" style="font-family: &quot;Times New Roman&quot;, fantasy; font-size: 56px; color: rgb(159, 65, 79); font-weight: 900; font-style: normal; direction: ltr; transform: translate(329.854px, 423.988px) rotate(341.268deg);">ھيۚۜ</div><div class="blob spin" style="font-family: &quot;Comic Sans MS&quot;, monospace; font-size: 60px; color: rgb(249, 225, 190); font-weight: normal; font-style: italic; text-shadow: rgb(208, 163, 103) 0px 0px 40px; direction: ltr; text-orientation: mixed; --sp: 4.05s; transform: translate(389.868px, 423.996px) rotate(42.7345deg);">💥🍕</div><div class="blob" style="font-family: &quot;fantasy&quot;, &quot;Arial Black&quot;, &quot;Noto Naskh Arabic&quot;, sans-serif; font-size: 165px; color: rgb(59, 50, 139); font-weight: normal; font-style: normal; mix-blend-mode: screen; direction: ltr; transform: translate(449.743px, 423.778px) rotate(159.464deg);">ٱ̧̹</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, cursive; font-size: 164px; color: rgb(142, 26, 168); font-weight: normal; font-style: normal; letter-spacing: 2px; direction: ltr; --sp: 5.85s; transform: translate(510.092px, 424.199px) rotate(339.477deg); text-shadow: rgb(90, 82, 239) 0px 0px 5px; text-orientation: sideways;">۴ۘۚی ﻕۖۙپّﻹۛظُئۙۙ؊ًۜ</div><div class="blob" style="font-family: &quot;Lucida Console&quot;, &quot;Brush Script MT&quot;, Scheherazade, cursive; font-size: 146px; color: rgb(87, 83, 223); font-weight: 900; font-style: italic; text-shadow: rgb(7, 247, 2) 0px 0px 20px; direction: ltr; transform: translate(569.954px, 423.999px) rotate(75.653deg);">👾☣️</div><div class="blob" style="font-family: &quot;system-ui&quot;, &quot;serif&quot;, fantasy; font-size: 92px; color: rgb(210, 151, 116); font-weight: 900; font-style: italic; direction: ltr; transform: translate(629.941px, 423.982px) rotate(0.631674deg);">ᚎᚄᚗ</div><div class="blob spin" style="font-family: Scheherazade, sans-serif; font-size: 23px; color: rgb(188, 245, 204); font-weight: 900; font-style: normal; letter-spacing: 20px; direction: rtl; text-orientation: upright; --sp: 6.20s; transform: translate(689.659px, 424.218px) rotate(271.373deg);">⠧ ⠧ </div><div class="blob spin" style="font-family: &quot;Brush Script MT&quot;, cursive; font-size: 14px; color: rgb(123, 52, 197); font-weight: normal; font-style: normal; letter-spacing: 16px; direction: rtl; --sp: 3.66s; transform: translate(750.067px, 423.99px) rotate(100.602deg);">أ̸ۗﺡ̸ٌ̗̲</div><div class="blob" style="font-family: &quot;serif&quot;, cursive; font-size: 148px; color: rgb(65, 252, 44); font-weight: normal; font-style: italic; letter-spacing: 11px; direction: rtl; text-orientation: upright; transform: translate(30.1527px, 425.215px) rotate(16.6406deg);">ﴽًُ ٱڈًّ؈ٓۗ عﺫْۘ ٠ ۳ًِ</div><div class="blob spin" style="font-family: &quot;Trebuchet MS&quot;, sans-serif; font-size: 28px; color: rgb(115, 202, 88); font-weight: normal; font-style: normal; letter-spacing: -2px; direction: ltr; writing-mode: vertical-rl; text-orientation: upright; --sp: 1.55s; transform: translate(89.9994px, 425.257px) rotate(212.564deg);">ᛇᛉᛃ </div><div class="blob spin" style="font-family: Palatino, Verdana, &quot;cursive&quot;, serif; font-size: 155px; color: rgb(40, 76, 195); font-weight: 900; font-style: italic; mix-blend-mode: exclusion; direction: ltr; --sp: 6.23s; transform: translate(149.95px, 425.583px) rotate(198.143deg);">ᚹᛖᛖᛈᛞᛈᚹ</div><div class="blob" style="font-family: &quot;Arial Black&quot;, monospace; font-size: 115px; color: rgb(189, 58, 40); font-weight: normal; font-style: italic; direction: ltr; text-orientation: mixed; transform: translate(209.993px, 425.308px) rotate(231.008deg);">∠≈≡</div><div class="blob" style="font-family: &quot;fantasy&quot;, &quot;monospace&quot;, serif; font-size: 63px; color: rgb(225, 124, 243); font-weight: normal; font-style: normal; letter-spacing: 4px; direction: ltr; --sp: 3.41s; transform: translate(269.894px, 425.152px) rotate(79.1037deg); text-shadow: rgb(72, 45, 149) 0px 0px 34px;">خ̸̵̵̷̦͉̜̞̩̱</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, serif; font-size: 151px; color: rgb(133, 254, 151); font-weight: 900; font-style: normal; direction: ltr; writing-mode: vertical-lr; text-orientation: sideways; --sp: 0.71s;">ﺵ̣</div><div class="blob" style="font-family: &quot;fantasy&quot;, Scheherazade, Garamond, serif; font-size: 52px; color: rgb(144, 208, 165); font-weight: normal; font-style: normal; direction: ltr; writing-mode: sideways-rl;">μ̨θ̴ΦΑ̢̲̘στ̪̳ ξο̨φ̬͎</div><div class="blob spin" style="font-family: &quot;cursive&quot;, &quot;Noto Naskh Arabic&quot;, cursive; font-size: 10px; color: rgb(163, 90, 0); font-weight: 900; font-style: normal; mix-blend-mode: color-dodge; direction: ltr; text-orientation: upright; --sp: 5.18s;">ﺎۛةٰۚظأۘلﻭٌحۘﺕًۜطٌۙ</div><div class="blob" style="font-family: Georgia, fantasy; font-size: 29px; color: rgb(247, 228, 197); font-weight: 900; font-style: italic; letter-spacing: 5px; direction: ltr;">∴͇∏̢̩̮̤ ̱̗∈⊥⌋̴̖∵̴̘̮̯∈̟ ̯̺∃̡≤̫ ̴̣̣</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, &quot;system-ui&quot;, Garamond, monospace; font-size: 124px; color: rgb(246, 193, 81); font-weight: 900; font-style: italic; letter-spacing: 17px; direction: ltr; writing-mode: sideways-rl; --sp: 1.41s;">ﷲ</div><div class="blob" style="font-family: Verdana, Impact, cursive; font-size: 54px; color: rgb(46, 98, 158); font-weight: normal; font-style: normal; direction: ltr;">پِڑٓﺽّۘ۷َڑٍُبِۖ٦َ </div><div class="blob" style="font-family: &quot;Arial Black&quot;, monospace; font-size: 69px; color: rgb(143, 195, 65); font-weight: 900; font-style: normal; direction: ltr; text-orientation: sideways;">う̭̤͍̼</div><div class="blob spin" style="font-family: Palatino, sans-serif; font-size: 78px; color: rgb(214, 87, 131); font-weight: normal; font-style: italic; direction: rtl; text-orientation: upright; --sp: 1.61s;">⠛⠝⠝⠞ ⠕⠵</div><div class="blob" style="font-family: Scheherazade, &quot;Lucida Console&quot;, &quot;Trebuchet MS&quot;, serif; font-size: 103px; color: rgb(138, 240, 106); font-weight: 900; font-style: normal; direction: ltr; text-orientation: upright;">ﷲۘ ﻥپٓﻻٍٔ </div><div class="blob spin" style="font-family: Amiri, Scheherazade, cursive; font-size: 175px; color: rgb(233, 175, 184); font-weight: normal; font-style: normal; mix-blend-mode: screen; direction: rtl; --sp: 6.27s;">ﺕ̤</div><div class="blob" style="font-family: &quot;Noto Naskh Arabic&quot;, &quot;Times New Roman&quot;, &quot;monospace&quot;, serif; font-size: 163px; color: rgb(117, 47, 80); font-weight: normal; font-style: normal; letter-spacing: 2px; direction: ltr; writing-mode: vertical-lr; text-orientation: upright;">ﺝ</div><div class="blob spin" style="font-family: &quot;Arial Black&quot;, &quot;serif&quot;, Tahoma, cursive; font-size: 144px; color: rgb(97, 241, 65); font-weight: 900; font-style: italic; direction: ltr; --sp: 3.38s;">🦠🐙</div><div class="blob spin" style="font-family: &quot;fantasy&quot;, sans-serif; font-size: 20px; color: rgb(162, 6, 131); font-weight: normal; font-style: normal; letter-spacing: 14px; mix-blend-mode: screen; direction: ltr; --sp: 2.07s;">ھِنْۜﻭْﴼَۘ ﺱ ۶ﻝٓںّٓ۹ً</div><div class="blob spin" style="font-family: &quot;Times New Roman&quot;, &quot;Comic Sans MS&quot;, monospace; font-size: 131px; color: rgb(255, 147, 143); font-weight: normal; font-style: normal; letter-spacing: -1px; text-shadow: rgb(60, 132, 200) 0px 0px 28px; direction: rtl; text-orientation: mixed; --sp: 0.96s;">еэ̸̻̬̥зз͈̦̫̖я̠̺̫ ж̷̡̫̟ ̸̛̼с̱̜р̙</div><div class="blob spin" style="font-family: Palatino, &quot;serif&quot;, serif; font-size: 89px; color: rgb(182, 242, 214); font-weight: normal; font-style: normal; text-shadow: rgb(50, 55, 154) 0px 0px 9px; direction: ltr; --sp: 4.65s;">☢️🫥</div><div class="blob spin" style="font-family: Tahoma, serif; font-size: 103px; color: rgb(58, 148, 217); font-weight: normal; font-style: normal; mix-blend-mode: exclusion; direction: ltr; text-orientation: sideways; --sp: 4.95s;">黄月 寒来符宿玄</div><div class="blob spin" style="font-family: &quot;Comic Sans MS&quot;, &quot;Noto Naskh Arabic&quot;, serif; font-size: 60px; color: rgb(83, 213, 154); font-weight: normal; font-style: normal; text-shadow: rgb(47, 50, 254) 0px 0px 23px; mix-blend-mode: difference; direction: rtl; text-orientation: mixed; --sp: 0.82s;">چۂٍ̙̲̪̪̙̹ۙٹﻡ̷ٰع̻̺̭̼ۖٓج̷̹̱ٓ</div><div class="blob" style="font-family: &quot;Times New Roman&quot;, &quot;fantasy&quot;, Garamond, sans-serif; font-size: 22px; color: rgb(159, 133, 244); font-weight: 900; font-style: italic; text-shadow: rgb(209, 222, 235) 0px 0px 4px; mix-blend-mode: hue; direction: rtl; text-orientation: upright;">ﻉِ̘ۘﻡٰ̩ﺵ٠ ͎ﻩ̷ڑ̶ٰ̜أ͇̺ٓۘ ̳ﺎ͇</div><div class="blob spin" style="font-family: &quot;Trebuchet MS&quot;, serif; font-size: 70px; color: rgb(255, 166, 128); font-weight: normal; font-style: italic; mix-blend-mode: screen; direction: ltr; text-orientation: sideways; --sp: 1.65s;">ᚄᚕᚔ ᚅᚘᚔᚊᚇᚄᚄ</div><div class="blob" style="font-family: &quot;Comic Sans MS&quot;, fantasy; font-size: 145px; color: rgb(238, 119, 238); font-weight: normal; font-style: normal; letter-spacing: 20px; text-shadow: rgb(231, 141, 115) 0px 0px 24px; direction: ltr;">ᚙᚖᚁ </div><div class="blob" style="font-family: Impact, Garamond, &quot;Trebuchet MS&quot;, sans-serif; font-size: 13px; color: rgb(194, 135, 41); font-weight: 900; font-style: normal; text-shadow: rgb(190, 187, 242) 0px 0px 2px; direction: rtl; text-orientation: upright;">ﻹ̞</div><div class="blob spin" style="font-family: &quot;monospace&quot;, &quot;cursive&quot;, Palatino, sans-serif; font-size: 82px; color: rgb(148, 244, 230); font-weight: 900; font-style: italic; text-shadow: rgb(197, 197, 247) 0px 0px 23px; direction: ltr; writing-mode: vertical-rl; text-orientation: mixed; --sp: 1.52s;">Во̻̩̲е̺̩з̺я цВ̖ ̰</div><div class="blob" style="font-family: &quot;Lucida Console&quot;, Palatino, &quot;system-ui&quot;, monospace; font-size: 15px; color: rgb(243, 255, 148); font-weight: normal; font-style: normal; mix-blend-mode: color-dodge; direction: rtl; writing-mode: vertical-rl; text-orientation: mixed;">ص۷َٔﻷّٔمٌۗﺏَۚ </div><div class="blob spin" style="font-family: &quot;Lucida Console&quot;, monospace; font-size: 82px; color: rgb(177, 108, 62); font-weight: normal; font-style: normal; direction: rtl; text-orientation: mixed; --sp: 5.05s;">٩ۗۛشۙﻵُ ﺹِفُ</div><div class="blob" style="font-family: &quot;Trebuchet MS&quot;, &quot;Trebuchet MS&quot;, Palatino, serif; font-size: 18px; color: rgb(153, 158, 250); font-weight: normal; font-style: normal; direction: ltr;">لﻝسۙ ﻹ ٱةَۙ </div><div class="blob" style="font-family: Verdana, &quot;Times New Roman&quot;, &quot;Brush Script MT&quot;, serif; font-size: 102px; color: rgb(198, 200, 231); font-weight: normal; font-style: normal; text-shadow: rgb(55, 246, 141) 0px 0px 9px; direction: ltr; text-orientation: upright;">ﴼ</div></div>
+<canvas id="noise" width="195" height="110" style="width: 780px; height: 441px;"></canvas>
+<div id="flash"></div>
+<a id="reshow" href="?warn" title="show the seizure warning again">⚠ warning</a>
+<div id="hint">no going back</div>
+<div id="src" class="f" title="entropy source"><b>src:</b> <span id="srclbl">fallback</span></div>
+
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gate-h" style="display: none;">
+  <div class="box">
+    <div class="warnmark">⚠ SEIZURE &amp; PHOTOSENSITIVITY WARNING ⚠</div>
+    <h1 id="gate-h">Read this before you enter</h1>
+    <p>This page contains <strong>rapid flashing, strobing, and high-contrast motion</strong>, and it plays loud, unpredictable sound. Content like this can trigger seizures in people with <strong>photosensitive epilepsy</strong>, even those with no history of seizures.</p>
+    <p>Nothing on this page moves, flashes, or makes any sound until you choose to enter. This screen is safe and will stay still.</p>
+    <p><strong>Do not enter</strong> if you are photosensitive, prone to seizures or migraines, or unsure. There is no benefit here — it is deliberately incoherent.</p>
+    <div class="btns">
+      <button id="enter" type="button">I understand — enter</button>
+      <a class="leave" id="leave" href="https://en.wikipedia.org/wiki/Photosensitive_epilepsy" rel="noopener">No thanks — take me out</a>
+    </div>
+    <p class="fine">Your choice is remembered on this device so you are not asked again. To see this warning again later, use the small <strong>⚠ warning</strong> link in the corner, or add <code>?warn</code> to the address.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var F=Math.floor;
+
+// ---------- QUANTUM ENTROPY (ANU QRNG) with buffered refill + graceful fallback ----------
+// Draws uint16 values from https://qrng.anu.edu.au/API/jsonI.php and normalizes to [0,1).
+// Never blocks: every draw returns instantly (buffer or Math.random). Refills happen async.
+var QRNG={
+  buf:[],            // buffered uint16 values (0..65535)
+  i:0,               // read cursor
+  LOW:256,           // refill when fewer than this remain
+  BATCH:1024,        // ANU max length per request
+  fetching:false,
+  cooldownUntil:0,   // ms epoch; ANU rate-limits ~1 req/min
+  usedQuantum:false, // whether last draw came from quantum buffer
+  ok:false,          // whether a fetch has ever succeeded
+  remaining:function(){return this.buf.length-this.i;},
+  refill:function(){
+    var now=Date.now();
+    if(this.fetching||now<this.cooldownUntil)return;
+    if(this.remaining()>this.LOW)return;
+    this.fetching=true;
+    var self=this;
+    var ctl=(typeof AbortController!=='undefined')?new AbortController():null;
+    var timer=setTimeout(function(){if(ctl)ctl.abort();},6000); // hard timeout so nothing hangs
+    fetch('https://qrng.anu.edu.au/API/jsonI.php?length='+this.BATCH+'&type=uint16',
+      ctl?{signal:ctl.signal,cache:'no-store'}:{cache:'no-store'})
+      .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
+      .then(function(j){
+        if(!j||!j.success||!j.data||!j.data.length)throw new Error('bad payload');
+        // drop consumed head, append fresh entropy
+        if(self.i>0){self.buf=self.buf.slice(self.i);self.i=0;}
+        self.buf=self.buf.concat(j.data);
+        self.ok=true;
+        self.cooldownUntil=Date.now()+65000; // respect ~1 req/min
+      })
+      .catch(function(){
+        // failure / timeout / rate-limit / CORS: back off, keep serving Math.random
+        self.cooldownUntil=Date.now()+65000;
+      })
+      .then(function(){clearTimeout(timer);self.fetching=false;setSrc();});
+  },
+  // returns a float in [0,1); quantum when buffer has entropy, else Math.random
+  next:function(){
+    if(this.remaining()<=this.LOW)this.refill();
+    if(this.i<this.buf.length){
+      this.usedQuantum=true;
+      return this.buf[this.i++]/65536;
+    }
+    this.usedQuantum=false;
+    return Math.random();
+  }
+};
+// R() is the single random source used everywhere below.
+function R(){return QRNG.next();}
+
+// entropy-source indicator
+var srcEl=document.getElementById('src'),srcLbl=document.getElementById('srclbl');
+function setSrc(){
+  var q=QRNG.usedQuantum && QRNG.remaining()>0;
+  srcEl.className=q?'q':'f';
+  srcLbl.textContent=q?('quantum · '+QRNG.remaining()):'fallback';
+}
+function ri(a,b){return F(R()*(b-a+1))+a;}
+function pick(a){return a[F(R()*a.length)];}
+function chance(p){return R()<p;}
+
+var FONTS=['Georgia','Times New Roman','Courier New','Arial Black','Impact','Comic Sans MS',
+  'monospace','cursive','fantasy','Verdana','Trebuchet MS','Palatino','Garamond','Brush Script MT',
+  'Lucida Console','Tahoma','system-ui','serif','Noto Naskh Arabic','Amiri','Scheherazade'];
+// AXIS: random font STACKS (not just a single face) — combine faces + a generic fallback.
+function fontStack(){
+  var n=ri(1,3),a=[];
+  for(var i=0;i<n;i++)a.push('"'+pick(FONTS)+'"');
+  a.push(pick(['serif','sans-serif','monospace','cursive','fantasy']));
+  return a.join(',');
+}
+
+// ---- arabic-looking / scrambled glyph soup (NO readable words) ----
+// arabic letters, presentation forms, persian/urdu extras, diacritics, tashkeel
+var ARABIC=('ابتثجحخدذرزسشصضطظعغفقكلمنهوي'+
+  'ٱآأؤإئءةىﻻﷲﻵﻷﻹ'+
+  'ٹپچڈڑژکگںھہۃیےۀۂ'+
+  'ﺎﺏﺕﺙﺝﺡﺥﺩﺫﺭﺯﺱﺵﺹﺽﻁﻅﻉﻍﻑﻕﻙﻝﻡﻥﻩﻭﻱ'+
+  'ﴼﴽ﷽؈؉؊؋').split('');
+var TASHKEEL=('ًٌٍَُِّْٰٓٔۖۗۘۙۚۛۜ').split('');
+var ANUM='٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.split('');
+function glyphRun(){
+  var n=ri(1,9),s='';
+  for(var i=0;i<n;i++){
+    s+=chance(.12)?pick(ANUM):pick(ARABIC);
+    var k=ri(0,2);for(var j=0;j<k;j++)s+=pick(TASHKEEL);
+    if(chance(.25))s+=' ';
+  }
+  return s;
+}
+// AXIS: random WRITING SYSTEMS — kana, cjk, cyrillic, greek, hebrew, runic, braille, math, blocks, ogham.
+var SCRIPTS=[
+  'あいうえおかきくけこさしすせそたちつてとなにぬねのアイウエオカキクケコサシ',
+  '汉字乱码鬼画符天地玄黄宇宙洪荒日月盈昃辰宿列张寒来暑往秋收冬藏',
+  'абвгдежзийклмнопрстуфхцчшщъыьэюяАБВГ',
+  'αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΘΛΞΠΣΦΨΩ',
+  'אבגדהוזחטיכלמנסעפצקרשתךםןףץ',
+  'ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛞᛟ',
+  '⠁⠃⠉⠙⠑⠋⠛⠓⠊⠚⠅⠇⠍⠝⠕⠏⠟⠗⠎⠞⠥⠧⠺⠭⠽⠵',
+  '∀∂∃∇∈∉∏∑√∞∫≈≠≡≤≥⊕⊗⊥⌈⌉⌊⌋∮∴∵∝∠',
+  '╔╗╚╝║═╠╣╦╩╬░▒▓█▄▀▐▌■□▲►▼◄◆◇○●',
+  'ᚁᚂᚃᚄᚅᚆᚇᚈᚉᚊᚋᚌᚍᚎᚏᚐᚑᚒᚓᚔᚕᚖᚗᚘᚙ'
+].map(function(s){return s.split('');});
+function scriptRun(){
+  var set=pick(SCRIPTS),n=ri(1,10),s='';
+  for(var i=0;i<n;i++){s+=pick(set);if(chance(.2))s+=' ';}
+  return s;
+}
+var GLITCH='̴̵̶̷̸̡̢̧̨̛̖̗̘̙̜̝̞̟̠̣̤̥̦̩̪̫̬̭̮̯̰̱̲̳̹̺̻̼͇͈͉͍͎';
+function zalgo(s,amt){
+  var o='';
+  for(var i=0;i<s.length;i++){o+=s[i];var k=ri(0,amt||3);for(var j=0;j<k;j++)o+=GLITCH[F(R()*GLITCH.length)];}
+  return o;
+}
+var EMOJI=['🌀','👁️','🍕','🪐','🦷','🧿','🐛','🔮','💀','🌈','🦑','🧠','🫠','👾','🌸','🗿','🪼','🤡','🥴','🦠','🍄','🛸','🦴','🫥','🌶️','🧊','🪩','🎈','🥩','🪲','🦞','🪿','🕳️','🫧','🔥','⚡','💥','✨','🌪️','🩸','🦇','🕷️','🐙','🪬','☢️','☣️','🧬','🌋','⛧','🫀'];
+
+function randColor(){return 'hsl('+ri(0,360)+','+ri(40,100)+'%,'+ri(30,88)+'%)';}
+
+var stage=document.getElementById('stage');
+var flash=document.getElementById('flash');
+var W=innerWidth,H=innerHeight;
+addEventListener('resize',function(){W=innerWidth;H=innerHeight;});
+
+// content is ONLY emojis + arabic-looking/scrambled glyphs + foreign writing systems (NO readable words)
+function content(){
+  var k=R();
+  if(k<0.30) return chance(.35)?zalgo(glyphRun(),ri(1,5)):glyphRun();       // scrambled arabic glyphs
+  if(k<0.55){var e=pick(EMOJI);var n=ri(1,4),s=e;for(var i=1;i<n;i++)s+=pick(EMOJI);return s;} // emoji bursts
+  if(k<0.80) return chance(.30)?zalgo(scriptRun(),ri(1,4)):scriptRun();      // mixed writing systems
+  return zalgo(pick(ARABIC),ri(3,10));                                       // single zalgo'd glyph
+}
+
+// ======================================================================
+//   RANDOMNESS AXES (each an independent dial, layered on the originals)
+//   A. layout regime   B. time regime   C. typography (direction/vertical/stacks + scripts)
+//   D. page-level regime (title/favicon/cursor/accent/background)
+//   E. audio structure (scales/rhythm/waveform/filter sweeps)
+//   F. rare high-impact events
+// ======================================================================
+
+// ---- AXIS A: LAYOUT REGIME (swaps over time) ----
+var LAYOUT='scatter';
+var LAYOUTS=['scatter','grid','ring','spiral','orbit','columns','stack','diagonal'];
+function placeInLayout(b,i,n){
+  var cx=W/2,cy=H/2;
+  b.orbit=null;
+  if(LAYOUT==='grid'){
+    var cols=Math.max(1,Math.round(Math.sqrt(n))),rows=Math.ceil(n/cols);
+    var cw=W/cols,rh=H/Math.max(1,rows),c=i%cols,r=F(i/cols);
+    b.x=c*cw+cw/2;b.y=r*rh+rh/2;b.drift=false;
+  }else if(LAYOUT==='ring'){
+    var a=i/Math.max(1,n)*Math.PI*2,rad=Math.min(W,H)*0.38;
+    b.x=cx+Math.cos(a)*rad;b.y=cy+Math.sin(a)*rad;b.drift=false;
+  }else if(LAYOUT==='spiral'){
+    var t=i*0.55,rr=t*(Math.min(W,H)*0.018);
+    b.x=cx+Math.cos(t)*rr;b.y=cy+Math.sin(t)*rr;b.drift=false;
+  }else if(LAYOUT==='orbit'){
+    b.orbit={cx:cx,cy:cy,r:ri(30,F(Math.min(W,H)/2)),a:R()*Math.PI*2,va:(R()-.5)*0.06};
+    b.drift=false;
+  }else if(LAYOUT==='columns'){
+    var lanes=ri(3,9);b.x=(F(R()*lanes)+.5)*(W/lanes);b.y=R()*H;b.vx=0;b.drift=chance(.5);
+  }else if(LAYOUT==='stack'){
+    b.x=cx+ri(-60,60);b.y=cy+ri(-60,60);b.drift=false;
+  }else if(LAYOUT==='diagonal'){
+    var d=i/Math.max(1,n);b.x=d*W;b.y=d*H+ri(-40,40);b.drift=chance(.4);
+  }else{ // scatter
+    b.x=R()*W;b.y=R()*H;b.drift=chance(.6);
+  }
+}
+function applyLayout(){for(var i=0;i<blobs.length;i++)placeInLayout(blobs[i],i,blobs.length);}
+function rollLayout(){LAYOUT=pick(LAYOUTS);applyLayout();}
+
+// ---- AXIS B: TIME REGIME (variable tick rate, stutter, freeze, slow-mo, fast) ----
+var TS=1,stutter=false;
+function rollTime(){
+  var r=R();
+  if(r<.12){TS=0;stutter=false;}          // freeze-frame
+  else if(r<.28){TS=0.15;stutter=false;}  // slow motion
+  else if(r<.44){TS=2.6;stutter=false;}   // fast forward
+  else if(r<.56){TS=1;stutter=true;}      // stutter (frame drops)
+  else{TS=(R()*1.4+.5);stutter=false;}    // ordinary-ish, still varied
+}
+
+// ---- AXIS F: gravitational pull for rare events ----
+var pull=null; // {x,y,until}
+
+var blobs=[];
+var MAX=260;
+function styleBlob(el){
+  el.style.fontFamily=fontStack();                 // AXIS C: random font stacks
+  el.style.fontSize=ri(10,180)+'px';
+  el.style.color=randColor();
+  el.style.fontWeight=chance(.5)?'900':'normal';
+  el.style.fontStyle=chance(.3)?'italic':'normal';
+  el.style.letterSpacing=chance(.4)?ri(-6,22)+'px':'';
+  el.style.textShadow=chance(.35)?'0 0 '+ri(2,40)+'px '+randColor():'';
+  el.style.mixBlendMode=chance(.3)?pick(['difference','exclusion','screen','overlay','hue','color-dodge']):'';
+  // AXIS C: random text direction + vertical writing systems
+  el.style.direction=chance(.28)?'rtl':'ltr';
+  el.style.writingMode=chance(.16)?pick(['vertical-rl','vertical-lr','sideways-rl']):'';
+  el.style.textOrientation=chance(.4)?pick(['upright','mixed','sideways']):'';
+  if(chance(.35)){el.classList.add('spin');el.style.setProperty('--sp',(R()*7+.6).toFixed(2)+'s');}
+  else el.classList.remove('spin');
+}
+function makeBlob(){
+  if(blobs.length>=MAX)return;
+  var el=document.createElement('div');
+  el.className='blob';
+  el.textContent=content();
+  styleBlob(el);
+  var b={el:el,
+    x:R()*W,y:R()*H,
+    vx:(R()-.5)*3.4,vy:(R()-.5)*3.4,
+    rot:R()*360,vr:(R()-.5)*5,
+    jit:R()*7,
+    life:ri(30,240),                 // frames until it may die
+    drift:chance(.6),orbit:null};
+  blobs.push(b);
+  placeInLayout(b,blobs.length-1,blobs.length);   // seat it in the current layout regime
+  stage.appendChild(el);
+  beep(chance(.5));                   // sound on spawn
+  return b;
+}
+
+// ---------- WEB AUDIO: layered, feral, random + AXIS E: musical STRUCTURE ----------
+var actx=null, master=null, started=false, droneOn=false;
+// AXIS E: random scales / root / tempo / sequencer waveform (re-rolled over time)
+var SCALES=[[0,2,3,5,7,8,10],[0,2,4,5,7,9,11],[0,3,5,7,10],[0,2,4,6,8,10],
+  [0,1,2,3,4,5,6,7,8,9,10,11],[0,1,3,5,7,8,10],[0,2,3,5,7,9,10],[0,1,4,5,7,8,11]];
+var scale=SCALES[0],root=48,tempo=140,seqType='sine',seqStep=0,seqPattern=[0,-1,3,-1];
+function rollMusic(){scale=pick(SCALES);root=ri(33,57);tempo=ri(70,320);seqType=pick(['sine','square','sawtooth','triangle']);}
+function rollPattern(){
+  seqPattern=[];var len=pick([3,4,5,6,8,8,16]);
+  for(var i=0;i<len;i++)seqPattern.push(chance(.6)?ri(0,scale.length*2):-1);
+}
+function noteHz(deg){
+  var idx=((deg%scale.length)+scale.length)%scale.length;
+  var semi=root+scale[idx]+12*F(deg/scale.length);
+  return 440*Math.pow(2,(semi-69)/12);
+}
+function ensureAudio(){
+  if(actx)return;
+  try{
+    actx=new (window.AudioContext||window.webkitAudioContext)();
+    master=actx.createGain();master.gain.value=.5;master.connect(actx.destination);
+  }catch(e){}
+}
+// pitched tone with optional glide + filter SWEEP (AXIS E)
+function tone(hz,dur,type,peak,sweep){
+  if(!actx||actx.state!=='running')return;
+  try{
+    var t=actx.currentTime;
+    var o=actx.createOscillator(),g=actx.createGain(),node=o;
+    o.type=type||'sine';o.frequency.setValueAtTime(hz,t);
+    if(sweep&&chance(.5))o.frequency.exponentialRampToValueAtTime(hz*pick([.5,2,1.5,.75]),t+dur);
+    if(chance(.5)){
+      var bp=actx.createBiquadFilter();
+      bp.type=pick(['bandpass','lowpass','highpass','notch']);
+      bp.frequency.setValueAtTime(ri(200,3000),t);
+      bp.frequency.linearRampToValueAtTime(ri(200,5000),t+dur); // filter sweep
+      bp.Q.value=R()*16+1;o.connect(bp);node=bp;
+    }
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(peak||.05,t+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    node.connect(g);g.connect(master);
+    o.start(t);o.stop(t+dur+.02);
+  }catch(e){}
+}
+function beep(loud){
+  if(!actx||actx.state!=='running')return;
+  try{
+    var t=actx.currentTime;
+    var voices=ri(1,3);
+    for(var v=0;v<voices;v++){
+      var o=actx.createOscillator(),g=actx.createGain();
+      o.type=pick(['sine','square','sawtooth','triangle']);
+      // AXIS E: half the time snap to the current random scale instead of a raw frequency
+      var f0=chance(.5)?noteHz(ri(-5,scale.length*2)):ri(60,2600);
+      o.frequency.setValueAtTime(f0,t);
+      o.frequency.linearRampToValueAtTime(chance(.5)?noteHz(ri(-5,scale.length*2)):ri(40,3600),t+(R()*.4+.05));
+      o.detune.value=ri(-60,60);
+      var peak=(loud?.09:.05)*(R()*.9+.2);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(peak,t+.01);
+      var dur=R()*.5+.06;
+      g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+      if(chance(.4)){
+        var bp=actx.createBiquadFilter();
+        bp.type=pick(['bandpass','lowpass','highpass','notch']);
+        bp.frequency.value=ri(200,4000);bp.Q.value=R()*18+1;
+        o.connect(bp);bp.connect(g);
+      }else o.connect(g);
+      g.connect(master);
+      o.start(t);o.stop(t+dur+.02);
+    }
+    if(chance(.18)){
+      var len=F(actx.sampleRate*(R()*.15+.03));
+      var buf=actx.createBuffer(1,len,actx.sampleRate),d=buf.getChannelData(0);
+      for(var i2=0;i2<len;i2++)d[i2]=(R()*2-1)*(1-i2/len);
+      var src=actx.createBufferSource();src.buffer=buf;
+      var ng=actx.createGain();ng.gain.value=.05*(R()+.2);
+      src.connect(ng);ng.connect(master);src.start(t);
+    }
+  }catch(e){}
+}
+// AXIS E: rhythmic sequencer — a random riff over a random scale at a random, drifting tempo
+var seqTimer=null;
+function seqTick(){
+  if(!running)return;
+  var deg=seqPattern[seqStep%seqPattern.length];
+  if(deg>=0&&actx&&actx.state==='running')tone(noteHz(deg),(60/tempo)*(R()*.8+.4),seqType,.06,true);
+  seqStep++;
+  if(chance(.03)){rollMusic();rollPattern();}      // sometimes lurch to a whole new key/feel
+  var beat=60/tempo;
+  if(chance(.15))beat*=pick([.5,2,1.5,.25]);       // rhythmic subdivision / augmentation
+  if(TS===0)beat*=4;                               // slow the pulse when time is frozen
+  seqTimer=setTimeout(seqTick,beat*1000*(stutter?(R()*.6+.7):1));
+}
+function startDrone(){
+  if(droneOn||!actx)return;droneOn=true;
+  try{
+    var o=actx.createOscillator(),g=actx.createGain(),lfo=actx.createOscillator(),lg=actx.createGain();
+    o.type='sawtooth';o.frequency.value=ri(40,90);
+    lfo.frequency.value=R()*.4+.05;lg.gain.value=ri(4,20);
+    lfo.connect(lg);lg.connect(o.frequency);
+    g.gain.value=.015;o.connect(g);g.connect(master);
+    o.start();lfo.start();
+  }catch(e){}
+}
+function unlock(){
+  ensureAudio();
+  if(actx&&actx.state!=='running')actx.resume();
+  started=true;startDrone();
+  document.getElementById('hint').textContent='no going back';
+}
+
+// ---------- AXIS D: PAGE-LEVEL REGIME (favicon / cursor / accent / background) ----------
+var favLink=null;
+function setFavicon(em){
+  try{
+    var c=document.createElement('canvas');c.width=c.height=32;var x=c.getContext('2d');
+    x.font='26px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(em,16,18);
+    if(!favLink){favLink=document.createElement('link');favLink.rel='icon';document.head.appendChild(favLink);}
+    favLink.href=c.toDataURL('image/png');
+  }catch(e){}
+}
+function emojiCursor(em){
+  try{
+    var c=document.createElement('canvas');c.width=c.height=32;var x=c.getContext('2d');
+    x.font='24px serif';x.textAlign='center';x.textBaseline='middle';x.fillText(em,16,18);
+    return c.toDataURL('image/png');
+  }catch(e){return '';}
+}
+function rollPage(){
+  if(!running)return;
+  setFavicon(pick(EMOJI));
+  var cu=emojiCursor(pick(EMOJI));
+  document.body.style.cursor=chance(.5)&&cu?('url('+cu+') 16 16, auto')
+    :pick(['crosshair','none','cell','grab','wait','progress','zoom-in','not-allowed','copy','move']);
+  try{document.documentElement.style.accentColor=randColor();
+      document.documentElement.style.caretColor=randColor();}catch(e){}
+}
+var bgRegime='black';
+var BGS=['black','hue','radial','flickerdark','strobe','gradient'];
+function rollBg(){bgRegime=pick(BGS);}
+function bgTick(){
+  if(!running)return;
+  if(bgRegime==='hue')document.body.style.background='hsl('+ri(0,360)+',60%,'+ri(3,14)+'%)';
+  else if(bgRegime==='radial')document.body.style.background='radial-gradient(circle at '+ri(0,100)+'% '+ri(0,100)+'%,'+randColor()+',#000 70%)';
+  else if(bgRegime==='flickerdark')document.body.style.background=chance(.4)?'hsl('+ri(0,360)+',60%,'+ri(3,14)+'%)':'#000';
+  else if(bgRegime==='strobe')document.body.style.background=chance(.5)?'#fff':'#000';
+  else if(bgRegime==='gradient')document.body.style.background='linear-gradient('+ri(0,360)+'deg,'+randColor()+','+randColor()+')';
+  else document.body.style.background='#000';
+  if(chance(.2))rollBg();
+}
+
+// ---------- AXIS F: RARE HIGH-IMPACT EVENTS (low probability, big payoff) ----------
+function flashOnce(col){
+  flash.style.transition='';flash.style.background=col;flash.style.opacity=.65;
+  setTimeout(function(){flash.style.transition='opacity .35s';flash.style.opacity=0;
+    setTimeout(function(){flash.style.transition='';},380);},30);
+}
+function rareEvent(){
+  var e=pick(['invert','supernova','blackhole','megaglyph','mirror','monoscream','rain','quake']);
+  if(e==='invert'){
+    var h=document.documentElement;h.style.filter='invert(1) hue-rotate('+ri(0,360)+'deg)';
+    setTimeout(function(){h.style.filter='';},ri(300,1400));
+  }else if(e==='supernova'){
+    flashOnce(randColor());var cx=W/2,cy=H/2;
+    for(var i=0;i<blobs.length;i++){var b=blobs[i];b.orbit=null;b.drift=true;
+      var a=Math.atan2(b.y-cy,b.x-cx);b.vx=Math.cos(a)*ri(8,26);b.vy=Math.sin(a)*ri(8,26);}
+    for(var k=0;k<6;k++)beep(true);
+  }else if(e==='blackhole'){
+    pull={x:R()*W,y:R()*H,until:Date.now()+ri(700,1800)};
+  }else if(e==='megaglyph'){
+    var el=document.createElement('div');el.className='blob';
+    el.textContent=chance(.5)?pick(EMOJI):zalgo(pick(ARABIC),ri(2,6));
+    el.style.fontSize=F(Math.min(W,H)*(R()*.4+.5))+'px';el.style.color=randColor();
+    el.style.left='50%';el.style.top='50%';el.style.lineHeight='1';
+    el.style.transform='translate(-50%,-50%)';stage.appendChild(el);
+    setTimeout(function(){if(el.parentNode)stage.removeChild(el);},ri(500,1400));
+  }else if(e==='mirror'){
+    stage.style.transform=pick(['scaleX(-1)','scaleY(-1)','rotate(180deg)','scale(-1)']);
+    setTimeout(function(){stage.style.transform='';},ri(500,1800));
+  }else if(e==='monoscream'){
+    var c=randColor(),g=chance(.5)?pick(EMOJI):glyphRun();
+    for(var m=0;m<blobs.length;m++){blobs[m].el.style.color=c;blobs[m].el.textContent=g;}
+    for(var q=0;q<10;q++)beep(true);
+  }else if(e==='rain'){
+    for(var r=0;r<blobs.length;r++){var bb=blobs[r];bb.orbit=null;bb.drift=true;
+      bb.vx=(R()-.5)*2;bb.vy=ri(6,20);}
+  }else if(e==='quake'){
+    for(var s=0;s<blobs.length;s++)blobs[s].jit=ri(30,90);
+    setTimeout(function(){for(var s2=0;s2<blobs.length;s2++)if(blobs[s2])blobs[s2].jit=R()*7;},ri(400,1200));
+  }
+}
+
+// ---------- INTERACTION ----------
+function onMove(e){
+  if(chance(.5)){var b=makeBlob();if(b){b.x=e.clientX+ri(-40,40);b.y=e.clientY+ri(-40,40);}}
+}
+function onDown(e){
+  flashOnce(randColor());
+  for(var i=0;i<24;i++){var b=makeBlob();if(b){b.x=e.clientX+ri(-120,120);b.y=e.clientY+ri(-120,120);}}
+  for(var j=0;j<blobs.length;j++)if(chance(.55)){blobs[j].x=R()*W;blobs[j].y=R()*H;}
+  document.body.style.background=chance(.5)?'#000':randColor();
+  for(var k=0;k<ri(2,5);k++)beep(true);
+}
+
+// ---------- ANIMATION LOOP (respects the time regime) ----------
+function tick(){
+  if(!running)return;
+  if(stutter&&chance(.35)){requestAnimationFrame(tick);return;}   // dropped frame
+  var now=Date.now(),pulling=pull&&now<pull.until;
+  for(var i=blobs.length-1;i>=0;i--){
+    var b=blobs[i];
+    if(b.orbit){b.orbit.a+=b.orbit.va*TS;b.x=b.orbit.cx+Math.cos(b.orbit.a)*b.orbit.r;b.y=b.orbit.cy+Math.sin(b.orbit.a)*b.orbit.r;}
+    else if(b.drift){b.x+=b.vx*TS;b.y+=b.vy*TS;
+      if(b.x<-120)b.x=W+60;if(b.x>W+120)b.x=-60;
+      if(b.y<-120)b.y=H+60;if(b.y>H+120)b.y=-60;}
+    if(pulling){b.x+=(pull.x-b.x)*.06*(TS||1);b.y+=(pull.y-b.y)*.06*(TS||1);}
+    b.rot+=b.vr*TS;
+    var jx=(R()-.5)*b.jit*TS, jy=(R()-.5)*b.jit*TS;
+    b.el.style.transform='translate('+(b.x+jx)+'px,'+(b.y+jy)+'px) rotate('+b.rot+'deg)';
+    if(TS>0)b.life--;
+    if(b.life<=0&&(blobs.length>90||chance(.02))){stage.removeChild(b.el);blobs.splice(i,1);}
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---------- CANVAS STATIC (variable refresh rate rides the time regime) ----------
+var nz=document.getElementById('noise'),nc=nz.getContext('2d');
+function sizeNz(){nz.width=W/4;nz.height=H/4;nz.style.width=W+'px';nz.style.height=H+'px';}
+function noise(){
+  if(!running)return;
+  var id=nc.createImageData(nz.width,nz.height),d=id.data;
+  for(var i=0;i<d.length;i+=4){var v=F(R()*255);d[i]=d[i+1]=d[i+2]=v;d[i+3]=255;}
+  nc.putImageData(id,0,0);
+  var delay=TS===0?300:50;if(chance(.05))delay=ri(15,500);
+  setTimeout(function(){requestAnimationFrame(noise);},delay);
+}
+
+// ---------- SELF-SCHEDULING CONTROLLERS (variable cadence) ----------
+function spawnLoop(){
+  if(!running)return;
+  var n=ri(2,7);
+  for(var i=0;i<n;i++)if(chance(.85))makeBlob();
+  var d=(TS===0?540:90);if(chance(.1))d=ri(20,400);
+  setTimeout(spawnLoop,d);
+}
+function restyleTick(){
+  if(!running)return;
+  for(var i=0;i<6;i++){var b=pick(blobs);if(!b)break;
+    if(chance(.6)){styleBlob(b.el);b.el.textContent=content();}
+    if(chance(.4))placeInLayout(b,F(R()*blobs.length),blobs.length);
+    if(chance(.5))beep(false);
+  }
+}
+function timeLoop(){if(!running)return;rollTime();setTimeout(timeLoop,ri(600,4000));}
+function layoutLoop(){if(!running)return;rollLayout();setTimeout(layoutLoop,ri(2000,9000));}
+
+// ======================================================================
+//   THE GATE: nothing above actually RUNS until start() is called.
+//   Everything up to here is definitions. Below is the only launcher.
+// ======================================================================
+var running=false;
+function start(){
+  if(running)return;running=true;
+  // entropy: quantum refill loop + live source label
+  QRNG.refill();
+  setInterval(function(){QRNG.refill();setSrc();},2000);
+  setSrc();
+  // audio unlock on first gesture (the gate's accept click already counts as one)
+  ['pointerdown','keydown','touchstart'].forEach(function(ev){addEventListener(ev,unlock,{passive:true});});
+  unlock();
+  // interaction
+  addEventListener('pointermove',onMove);
+  addEventListener('pointerdown',onDown);
+  addEventListener('resize',sizeNz);
+  // seed every regime
+  rollMusic();rollPattern();rollLayout();rollTime();rollBg();
+  // dense initial burst
+  for(var i=0;i<120;i++)makeBlob();
+  rollPage();
+  // loops + controllers
+  spawnLoop();
+  timeLoop();
+  layoutLoop();
+  setInterval(restyleTick,140);
+  setInterval(bgTick,900);
+  setInterval(rollPage,4000);
+  setInterval(function(){if(chance(.06))rareEvent();},2500);      // AXIS F trigger
+  setInterval(function(){document.title=zalgo(glyphRun(),ri(1,6));},700);
+  sizeNz();
+  tick();
+  noise();
+  seqTick();
+}
+
+// ---------- GATE WIRING ----------
+var gate=document.getElementById('gate');
+function hideGate(){gate.style.display='none';}
+function accept(){
+  try{localStorage.setItem('random-accepted','1');}catch(e){}
+  // drop ?warn so a later refresh doesn't needlessly re-gate an accepted visitor
+  try{if(/[?&]warn\b/.test(location.search))history.replaceState(null,'',location.pathname);}catch(e){}
+  hideGate();start();
+}
+document.getElementById('enter').addEventListener('click',accept);
+(function(){
+  var force=/[?&]warn\b/.test(location.search);
+  var ok=false;try{ok=localStorage.getItem('random-accepted')==='1';}catch(e){}
+  if(ok&&!force){hideGate();start();}   // returning, consented visitor: don't re-gate
+  // otherwise the gate stays up (its static markup is already rendered) and nothing runs
+})();
+})();
+</script>
+<script>window.__errs=[];window.onerror=function(m){window.__errs.push(String(m));};setTimeout(function(){document.getElementById("enter").click();},20);setTimeout(function(){document.body.setAttribute("data-errs",JSON.stringify(window.__errs));document.body.setAttribute("data-src",document.getElementById("srclbl").textContent);document.body.setAttribute("data-cls",document.getElementById("src").className);},500);</script>
+
+</body></html>
